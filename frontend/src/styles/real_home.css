@@ -1,0 +1,312 @@
+.custom-gradient {
+  background-color: transparent;
+  background-image: linear-gradient(90deg, #135180 0%, #b82669 100%);
+}
+.homeBanner {
+  width: 100%;
+  height: 600px;
+  background-color: transparent;
+  background-image: linear-gradient(90deg, #135180 0%, #b82669 100%);
+  display: flex;
+}
+
+.homeBannerText {
+  padding-left: 200px;
+  padding-top: 0px;
+  padding-bottom: 50px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 50%;
+}
+.homeBannerText h1 {
+  color: white;
+  font-size: 40px;
+}
+.homeBannerText p {
+  color: white;
+  font-size: 20px;
+}
+
+.homeBannerImage {
+  width: 50%;
+}
+.homeBanner a {
+  width: 180px;
+  background-color: white;
+  color: #135180;
+  border: 1px solid #135180;
+  transition-duration: 0.5s;
+}
+
+.homeBanner a:hover {
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+}
+
+/* responsive header */
+
+@media screen and (max-width: 768px) {
+  .homeBanner {
+    width: 100vw;
+    height: auto;
+    background-color: transparent;
+    background-image: linear-gradient(90deg, #135180 0%, #b82669 100%);
+    flex-direction: column;
+    padding-bottom: 20px;
+  }
+
+  .homeBannerText {
+    padding-left: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+  }
+  .homeBannerText h1 {
+    color: white;
+    font-size: 25px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .homeBannerText p {
+    color: white;
+    font-size: 16px;
+  }
+
+  .homeBannerImage {
+    display: none;
+  }
+  .nav-btn {
+    margin-top: 0px !important;
+  }
+}
+
+/* responsive header end */
+
+.shortFeature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 20px;
+  background-color: #f9f9f9;
+  padding-bottom: 80px;
+}
+
+.shortFeatureText {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.shortFeatureText h2 {
+  font-size: 32px;
+  color: #135180;
+  margin-bottom: 10px;
+}
+
+.shortFeatureText p {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.shortFeatureCards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.shortFeatureCard {
+  width: 200px;
+  height: 150px;
+  background-color: #135180;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.shortFeatureCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.shortFeatureCard h3,
+.shortFeatureCard h2,
+.shortFeatureCard h1 {
+  color: white;
+}
+.shortFeatureCard h3 {
+  font-size: 20px;
+}
+.shortFeatureCard h2 {
+  font-size: 24px;
+}
+
+.shortFeatureCard h1 {
+  font-size: 26px;
+}
+.footer {
+  background-color: #135180;
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.footer-nav {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.footer-nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.footer-nav a:hover {
+  color: #b82669;
+}
+
+.infograph {
+  padding: 50px 20px;
+  background-color: #f4f4f4;
+}
+
+.infographRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+
+.infographImage {
+  width: 25%;
+  text-align: center;
+}
+
+.infographImage img {
+  max-width: 100%;
+  height: auto;
+}
+
+.infographText {
+  width: 25%;
+  padding: 20px;
+}
+
+.infographText p {
+  font-size: 18px;
+  color: #135180;
+  line-height: 1.6;
+}
+.infographTitle {
+  text-align: center;
+  color: #135180;
+  font-size: 32px;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+/* responsive infograph */
+
+@media screen and (max-width: 768px) {
+  .infographRow {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .infographImage {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .infographText {
+    width: 100%;
+  }
+  .infographText p {
+    font-size: 16px;
+    color: #135180;
+    line-height: 1.4;
+  }
+  .infographTitle {
+    font-size: 24px;
+  }
+
+  .info-reversed {
+    flex-direction: column-reverse;
+  }
+}
+
+/* responsive infograph end */
+
+/* Navbar Styles */
+.navbar {
+  position: relative;
+}
+
+nav .position-relative:hover .dropdown-menu {
+  display: block !important;
+}
+.nav-btn {
+  color: white !important;
+  border: 1px solid white !important;
+  height: 36px;
+  width: 66px;
+  background-color: transparent !important;
+  border-radius: 5px !important;
+  background-image: linear-gradient(90deg, #135180 0%, #b82669 100%);
+  margin-top: -5px;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  color: #135180;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 1000;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-menu a {
+  color: #135180;
+  text-decoration: none;
+  display: block;
+  padding: 5px 10px;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-menu a:hover {
+  background-color: #f4f4f4;
+}
