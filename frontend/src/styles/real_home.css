@@ -11,14 +11,15 @@
 }
 
 .homeBannerText {
-  padding-left: 200px;
+  margin-left: auto;
+  margin-right: auto;
   padding-top: 0px;
   padding-bottom: 50px;
   padding-right: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 50%;
+  width: 660px;
 }
 .homeBannerText h1 {
   color: white;
@@ -47,6 +48,25 @@
 }
 
 /* responsive header */
+
+@media screen and (min-width: 1200px) {
+  .homeBannerText {
+    width: 570px;
+  }
+}
+
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+  .homeBannerText {
+    width: 480px;
+    margin-right: 0px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .homeBannerText {
+    width: 360px;
+  }
+}
 
 @media screen and (max-width: 768px) {
   .homeBanner {
@@ -283,9 +303,6 @@ nav .position-relative:hover .dropdown-menu {
   background-color: transparent !important;
   border-radius: 5px !important;
   margin-top: -5px;
-}
-
-.nav-btn {
   position: relative;
   background: none;
   cursor: pointer;
@@ -317,6 +334,10 @@ nav .position-relative:hover .dropdown-menu {
   animation: fadeIn 2s infinite alternate;
 }
 
+.nav-btn:hover::before,
+.nav-btn:hover::after {
+  animation-play-state: paused;
+}
 /* Animate the opacities in sync */
 @keyframes fadeOut {
   0% {
@@ -334,6 +355,23 @@ nav .position-relative:hover .dropdown-menu {
   100% {
     opacity: 1;
   }
+}
+
+.navlogo {
+  text-decoration: none;
+  color: #fff;
+}
+
+.nav-logotext {
+  font-size: 20px;
+  line-height: 1;
+  margin: 0px;
+}
+.nav-logosubtext {
+  font-size: 10px;
+  text-align: end;
+  line-height: 1;
+  margin: 0px;
 }
 
 .dropdown-menu {

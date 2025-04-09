@@ -50,13 +50,15 @@ const Navbar = () => {
   return (
     <header className="custom-gradient text-white shadow p-3 ">
       <div className="container d-flex align-items-center justify-content-between py-3">
-        <a href="/">
+        <a href="/" className="navlogo">
           <img
             src="images/logo.png"
             alt="Open Edx Logo"
             className="img-fluid"
             style={{height: "100px"}}
           />
+          <h2 className="nav-logotext">FILLOP TECH LTD</h2>
+          <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
         <button className="btn btn-outline-light d-lg-none" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
