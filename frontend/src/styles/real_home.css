@@ -65,7 +65,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     width: 100%;
+    text-align: center;
   }
   .homeBannerText h1 {
     color: white;
