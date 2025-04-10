@@ -60,7 +60,10 @@ const Navbar3 = () => {
           <h2 className="nav-logotext">FILLOP TECH LTD</h2>
           <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
-        <button className="btn btn-outline-light d-lg-none" onClick={() => setMenuOpen(!menuOpen)}>
+        <button
+          className="btn btn-outline-light d-lg-none me-3"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
           ☰
         </button>
         <nav className="d-none d-lg-flex gap-3">
@@ -87,7 +90,9 @@ const Navbar3 = () => {
               {item.type === "button" ? (
                 <button className="btn nav-btn">{item.label}</button>
               ) : (
-                <div className="fw-bold">{item.label}</div>
+                <a href={item.link || "#"} className="fw-bold text-decoration-none text-light">
+                  {item.label}
+                </a>
               )}
               {item.children && renderMenuItems(item.children)}
             </div>

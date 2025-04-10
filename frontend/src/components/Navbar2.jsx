@@ -71,7 +71,9 @@ const Navbar2 = () => {
                   {item.type === "button" ? (
                     <button className="btn nav-btn">{item.label}</button>
                   ) : (
-                    <div className="fw-bold">{item.label}</div>
+                    <a href={item.link || "#"} className="fw-bold text-decoration-none text-light">
+                      {item.label}
+                    </a>
                   )}
                   {item.children && renderMenuItems(item.children)}
                 </div>

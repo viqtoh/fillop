@@ -808,3 +808,7 @@ nav .position-relative:hover .dropdown-menu {
 .navlogo3 .nav-logosubtext {
   font-size: 12px !important;
 }
+
+body {
+  overflow-x: hidden !important;
+}
