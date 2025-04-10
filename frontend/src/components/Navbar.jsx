@@ -18,7 +18,7 @@ const navItems = [
     label: "News",
     link: "#"
   },
-  {label: "About Us", link: "#"},
+  {label: "About Us", link: "/about"},
   {label: "Contact Us", link: "#"},
   {
     label: "Login",
