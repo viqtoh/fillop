@@ -16,6 +16,10 @@ import "slick-carousel/slick/slick-theme.css";
 import Navbar from "../components/Navbar";
 
 const Home = () => {
+  useEffect(() => {
+    AOS.init({duration: 1000});
+  }, []);
+
   const images = [
     "/images/home1.jpg",
     "/images/home2.jpg",
@@ -108,18 +112,18 @@ const Home = () => {
           </p>
         </div>
         <div className="shortFeatureCards">
-          <div className="shortFeatureCard">
+          <div className="shortFeatureCard" data-aos="fade-up">
             <h1>99.9%</h1>
             <h3>Availability</h3>
           </div>
-          <div className="shortFeatureCard">
+          <div className="shortFeatureCard" data-aos="fade-down">
             <h1>Content</h1>
             <h3>Management</h3>
           </div>
-          <div className="shortFeatureCard">
+          <div className="shortFeatureCard" data-aos="fade-up">
             <h2>Custom Assessments</h2>
           </div>
-          <div className="shortFeatureCard">
+          <div className="shortFeatureCard" data-aos="fade-down">
             <h1>Multi</h1>
             <h3>Languages</h3>
           </div>
@@ -129,10 +133,10 @@ const Home = () => {
       <div className="infograph">
         <h2 className="infographTitle">How It Works</h2>
         <div className="infographRow">
-          <div className="infographImage">
+          <div className="infographImage" data-aos="fade-right">
             <img src="/images/infographic_login.png" alt="Infographic" />
           </div>
-          <div className="infographText">
+          <div className="infographText" data-aos="fade-left">
             <p>
               Create an account as a student or lecturer. Use the "Forgot Password" option if
               needed. Gain access to a world of educational opportunities.
@@ -140,22 +144,21 @@ const Home = () => {
           </div>
         </div>
         <div className="infographRow info-reversed">
-          {" "}
-          <div className="infographText">
+          <div className="infographText" data-aos="fade-right">
             <p>
               Browse available lectures and educational content on the platform. Discover a variety
               of topics tailored to your interests and goals.
             </p>
           </div>
-          <div className="infographImage">
+          <div className="infographImage" data-aos="fade-left">
             <img src="/images/infographic_browse.png" alt="Infographic" />
           </div>
         </div>
         <div className="infographRow">
-          <div className="infographImage">
+          <div className="infographImage" data-aos="fade-right">
             <img src="/images/infographic_manage.png" alt="Infographic" />
           </div>
-          <div className="infographText">
+          <div className="infographText" data-aos="fade-left">
             <p>
               Students can enroll in lectures and access pre-recorded materials like videos, PDFs,
               and more. Enhance your learning experience with our curated content.
