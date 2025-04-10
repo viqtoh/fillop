@@ -786,3 +786,25 @@ nav .position-relative:hover .dropdown-menu {
     display: block !important;
   }
 }
+
+.nav3 {
+  position: fixed;
+  z-index: 1000;
+  width: 100%;
+}
+.navlogo3 {
+  text-decoration: none;
+  color: #fff;
+}
+.navlogo3 img {
+  height: 50px !important;
+}
+
+.navlogo3 .nav-logotext {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+.navlogo3 .nav-logosubtext {
+  font-size: 12px !important;
+}

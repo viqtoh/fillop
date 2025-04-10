@@ -8,10 +8,12 @@ import {Parallax} from "react-parallax";
 import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-brands-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import Navbar2 from "../components/Navbar2";
+import Navbar3 from "../components/Navbar3";
 import Footer from "../components/Footer";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
   const images = [
@@ -50,9 +52,28 @@ const Home = () => {
     )
   };
 
+  const [showSecondNavbar, setShowSecondNavbar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200) {
+        setShowSecondNavbar(true);
+      } else {
+        setShowSecondNavbar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div>
       <Navbar2 />
+
+      {showSecondNavbar && <Navbar3 />}
       <div className="carousel-container">
         <div class="homeBannerText2">
           <h1>Empowering the Future of Education</h1>
