@@ -588,7 +588,7 @@ nav .position-relative:hover .dropdown-menu {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
   text-align: left;
-  height: 300px;
+  height: auto;
 }
 
 .whoWeServe h2,
@@ -606,6 +606,17 @@ nav .position-relative:hover .dropdown-menu {
 }
 .visionBody {
   display: flex;
+}
+
+@media screen and (max-width: 1254px) and (min-width: 768px) {
+  .visionBody {
+    display: block;
+  }
+}
+@media screen and (max-width: 576px) {
+  .visionBody {
+    display: block;
+  }
 }
 
 .visionGraphic img {
