@@ -7,28 +7,75 @@ import "aos/dist/aos.css";
 import {Parallax} from "react-parallax";
 import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-brands-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import Navbar from "../components/Navbar";
+import Navbar2 from "../components/Navbar2";
 import Footer from "../components/Footer";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const Home = () => {
+  const images = [
+    "/images/home1.jpg",
+    "/images/home2.jpg",
+    "/images/home3.jpg",
+    "/images/home4.jpg",
+    "/images/home5.jpg",
+    "/images/home6.jpg",
+    "/images/home7.jpg",
+    "/images/home8.jpg",
+    "/images/home9.jpg"
+  ];
+
+  // Slider settings
+  const settings = {
+    dots: true, // Enable dots for navigation
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true, // Optional: Auto scroll the carousel
+    autoplaySpeed: 2000,
+    appendDots: (dots) => (
+      <div
+        style={{
+          bottom: "10px",
+          position: "absolute",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center"
+        }}
+      >
+        <ul style={{margin: 0, padding: 0, display: "flex"}}>{dots}</ul>
+      </div>
+    )
+  };
+
   return (
     <div>
-      <Navbar />
-      <div className="homeBanner">
-        <div className="homeBannerText">
+      <Navbar2 />
+      <div className="carousel-container">
+        <div class="homeBannerText2">
           <h1>Empowering the Future of Education</h1>
           <p>
             Our platform is designed to help students and teachers alike by providing a
             comprehensive set of tools and resources to support their learning journey. Join us to
             experience a seamless and innovative approach to education.
           </p>
-          <a href="/login" className="btn">
+          <p className="homeBannerText2Sub">
+            Our platform provides tools and resources to support students and teachers in their
+            learning journey.
+          </p>
+          <a href="/login" class="btn">
             Get Started
           </a>
         </div>
-        <div className="homeBannerImage">
-          <img src="/images/Home-header.svg" alt="Home Banner" />
-        </div>
+        <Slider {...settings}>
+          {images.map((image, index) => (
+            <div key={index}>
+              <img src={image} alt={`Image ${index + 1}`} className="carousel-image" />
+            </div>
+          ))}
+        </Slider>
       </div>
       <div className="shortFeature">
         <div className="shortFeatureText">
