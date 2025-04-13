@@ -61,7 +61,7 @@ const Navbar3 = () => {
           <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
         <button
-          className="btn btn-outline-light d-lg-none me-3"
+          className="btn btn-outline-light d-lg-none me-3 ham2"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           ☰
