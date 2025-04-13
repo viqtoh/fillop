@@ -60,7 +60,10 @@ const Navbar = () => {
           <h2 className="nav-logotext">FILLOP TECH LTD</h2>
           <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
-        <button className="btn btn-outline-light d-lg-none" onClick={() => setMenuOpen(!menuOpen)}>
+        <button
+          className="btn btn-outline-light d-lg-none ham2"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
           ☰
         </button>
         <nav className="d-none d-lg-flex gap-3 nav1">

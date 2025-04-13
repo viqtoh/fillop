@@ -714,6 +714,9 @@ nav .position-relative:hover .dropdown-menu {
   transform: rotateY(180deg);
 }
 
+.visionGraphic {
+  overflow: hidden;
+}
 /* Responsive styles */
 @media screen and (max-width: 768px) {
   .aboutUsDetails {
