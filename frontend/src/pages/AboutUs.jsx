@@ -114,7 +114,7 @@ const AboutUs = () => {
 
         <div className="ourVision" data-aos="fade-left">
           <h2>Our Vision</h2>
-          <div className="visionBody">
+          <div className="visionBody visionBody2">
             <p>
               To become the world’s leading platform for accessible, tech-driven
               education—empowering learners and educators in every corner of the globe with the

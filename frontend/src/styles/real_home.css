@@ -713,6 +713,21 @@ nav .position-relative:hover .dropdown-menu {
   }
 }
 
+.visionBody2 {
+  display: block;
+}
+
+@media screen and (min-width: 1272px) {
+  .visionBody2 {
+    display: flex;
+  }
+  .visionBody2 p {
+    width: calc(100% - 300px);
+  }
+  .visionBody2 .visionGraphic {
+    width: 300px;
+  }
+}
 .visionGraphic img {
   height: 200px;
   transform: rotateY(180deg);
