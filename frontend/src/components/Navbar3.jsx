@@ -19,7 +19,7 @@ const navItems = [
     link: "#"
   },
   {label: "About Us", link: "/about"},
-  {label: "Contact Us", link: "#"},
+  {label: "Contact Us", link: "/contact"},
   {
     label: "Login",
     link: "#",
@@ -48,7 +48,7 @@ const Navbar3 = () => {
   );
 
   return (
-    <header className="nav3 custom-gradient text-white shadow p-3 ">
+    <header className="nav3 shadow p-3 ">
       <div className="container d-flex align-items-center justify-content-between">
         <a href="/" className="navlogo3">
           <img
@@ -72,7 +72,7 @@ const Navbar3 = () => {
               {item.type === "button" ? (
                 <button className="btn nav-btn">{item.label}</button>
               ) : (
-                <a href={item.link || "#"} className="text-white text-decoration-none fw-medium">
+                <a href={item.link || "#"} className="text-decoration-none fw-medium">
                   {item.label}
                 </a>
               )}
@@ -84,7 +84,7 @@ const Navbar3 = () => {
         </nav>
       </div>
       {menuOpen && (
-        <div className="d-lg-none  text-light p-3">
+        <div className="d-lg-none  p-3">
           {navItems.map((item, i) => (
             <div key={i} className="mb-3">
               {item.type === "button" ? (

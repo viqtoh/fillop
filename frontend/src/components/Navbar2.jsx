@@ -19,7 +19,7 @@ const navItems = [
     link: "#"
   },
   {label: "About Us", link: "/about"},
-  {label: "Contact Us", link: "#"},
+  {label: "Contact Us", link: "/contact"},
   {
     label: "Login",
     link: "#",

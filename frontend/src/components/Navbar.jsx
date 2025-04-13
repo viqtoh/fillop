@@ -19,7 +19,7 @@ const navItems = [
     link: "#"
   },
   {label: "About Us", link: "/about"},
-  {label: "Contact Us", link: "#"},
+  {label: "Contact Us", link: "/contact"},
   {
     label: "Login",
     link: "#",
@@ -48,8 +48,8 @@ const Navbar = () => {
   );
 
   return (
-    <header className="custom-gradient text-white shadow p-3 ">
-      <div className="container d-flex align-items-center justify-content-between py-3">
+    <header className="p-3 ">
+      <div className="container d-flex align-items-center justify-content-between py-3 ms-lg-5 ms-0">
         <a href="/" className="navlogo">
           <img
             src="images/logo.png"
@@ -63,13 +63,13 @@ const Navbar = () => {
         <button className="btn btn-outline-light d-lg-none" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>
-        <nav className="d-none d-lg-flex gap-3">
+        <nav className="d-none d-lg-flex gap-3 nav1">
           {navItems.map((item, i) => (
             <div key={i} className="position-relative">
               {item.type === "button" ? (
                 <button className="btn nav-btn">{item.label}</button>
               ) : (
-                <a href={item.link || "#"} className="text-white text-decoration-none fw-medium">
+                <a href={item.link || "#"} className=" text-decoration-none fw-medium">
                   {item.label}
                 </a>
               )}
@@ -81,13 +81,13 @@ const Navbar = () => {
         </nav>
       </div>
       {menuOpen && (
-        <div className="d-lg-none  text-light p-3">
+        <div className="d-lg-none p-3 nav1">
           {navItems.map((item, i) => (
             <div key={i} className="mb-3">
               {item.type === "button" ? (
                 <button className="btn nav-btn">{item.label}</button>
               ) : (
-                <a href={item.link || "#"} className="fw-bold text-decoration-none text-light">
+                <a href={item.link || "#"} className="fw-bold text-decoration-none">
                   {item.label}
                 </a>
               )}
@@ -96,6 +96,10 @@ const Navbar = () => {
           ))}
         </div>
       )}
+
+      <div className="breadcrumb-bg-curve">
+        <img src="/images/curve-5.png" alt="" />
+      </div>
     </header>
   );
 };

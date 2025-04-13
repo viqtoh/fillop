@@ -9,15 +9,34 @@ import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Navbar3 from "../components/Navbar3";
 
 const AboutUs = () => {
   useEffect(() => {
     AOS.init({duration: 1000});
   }, []);
 
+  const [showSecondNavbar, setShowSecondNavbar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200) {
+        setShowSecondNavbar(true);
+      } else {
+        setShowSecondNavbar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div>
       <Navbar />
+      {showSecondNavbar && <Navbar3 />}
       <div className="aboutBanner">
         <div className="aboutBannerText">
           <h1>About Us</h1>
