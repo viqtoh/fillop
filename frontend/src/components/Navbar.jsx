@@ -8,15 +8,15 @@ const navItems = [
   },
   {
     label: "Services",
-    link: "#"
+    link: "/services"
   },
   {
     label: "Education",
-    link: "#"
+    link: "/education"
   },
   {
     label: "News",
-    link: "#"
+    link: "/news"
   },
   {label: "About Us", link: "/about"},
   {label: "Contact Us", link: "/contact"},
