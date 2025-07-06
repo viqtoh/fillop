@@ -52,9 +52,7 @@ const Home = () => {
     "/images/home4.jpg",
     "/images/home5.jpg",
     "/images/home6.jpg",
-    "/images/home7.jpg",
-    "/images/home8.jpg",
-    "/images/home9.jpg"
+    "/images/home7.jpg"
   ];
 
   const [showSecondNavbar, setShowSecondNavbar] = useState(false);
@@ -91,7 +89,7 @@ const Home = () => {
             Our platform provides tools and resources to support students and teachers in their
             learning journey.
           </p>
-          <a href="/login" className="btn">
+          <a href="/register" className="btn">
             Get Started
           </a>
         </div>
@@ -140,7 +138,7 @@ const Home = () => {
       <div className="shortFeature">
         <div className="shortFeatureText">
           <h2>Millions of users reached</h2>
-          <p>
+          <p className="featureSubText">
             Our platform has reached millions of users worldwide, providing them with the tools and
             resources they need to succeed in their educational journey. We are committed to
             delivering excellence and innovation in education.

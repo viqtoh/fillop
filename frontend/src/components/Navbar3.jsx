@@ -1,5 +1,6 @@
 import {useState} from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import {useNavigate} from "react-router-dom";
 
 const navItems = [
   {
@@ -22,13 +23,14 @@ const navItems = [
   {label: "Contact Us", link: "/contact"},
   {
     label: "Login",
-    link: "#",
+    link: "/login",
     type: "button"
   }
 ];
 
 const Navbar3 = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const renderMenuItems = (items) => (
     <ul className="list-unstyled ps-3">
@@ -51,12 +53,7 @@ const Navbar3 = () => {
     <header className="nav3 shadow p-3 ">
       <div className="container d-flex align-items-center justify-content-between">
         <a href="/" className="navlogo3">
-          <img
-            src="images/logo.png"
-            alt="Open Edx Logo"
-            className="img-fluid"
-            style={{height: "100px"}}
-          />
+          <img src="/images/logo.png" alt="Logo" className="img-fluid" style={{height: "100px"}} />
           <h2 className="nav-logotext">FILLOP TECH LTD</h2>
           <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
@@ -70,7 +67,14 @@ const Navbar3 = () => {
           {navItems.map((item, i) => (
             <div key={i} className="position-relative">
               {item.type === "button" ? (
-                <button className="btn nav-btn">{item.label}</button>
+                <button
+                  onClick={() => {
+                    navigate(item.link);
+                  }}
+                  className="btn nav-btn"
+                >
+                  {item.label}
+                </button>
               ) : (
                 <a href={item.link || "#"} className="text-decoration-none fw-medium">
                   {item.label}
@@ -88,7 +92,9 @@ const Navbar3 = () => {
           {navItems.map((item, i) => (
             <div key={i} className="mb-3">
               {item.type === "button" ? (
-                <button className="btn nav-btn">{item.label}</button>
+                <button onClick={() => navigate(item.link)} className="btn nav-btn">
+                  {item.label}
+                </button>
               ) : (
                 <a href={item.link || "#"} className="fw-bold text-decoration-none text-light">
                   {item.label}

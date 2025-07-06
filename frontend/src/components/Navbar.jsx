@@ -1,5 +1,6 @@
 import {useState} from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import {useNavigate} from "react-router-dom";
 
 const navItems = [
   {
@@ -22,20 +23,23 @@ const navItems = [
   {label: "Contact Us", link: "/contact"},
   {
     label: "Login",
-    link: "#",
+    link: "/login",
     type: "button"
   }
 ];
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const renderMenuItems = (items) => (
     <ul className="list-unstyled ps-3">
       {items.map((item, index) => (
         <li key={index}>
           {item.type === "button" ? (
-            <button className="btn nav-btn">{item.label}</button>
+            <button onClick={() => navigate(item.link)} className="btn nav-btn">
+              {item.label}
+            </button>
           ) : (
             <div className="fw-bold text-dark">
               {item.label}
@@ -51,12 +55,7 @@ const Navbar = () => {
     <header className="p-3 ">
       <div className="container d-flex align-items-center justify-content-between py-3 ms-lg-5 ms-0">
         <a href="/" className="navlogo">
-          <img
-            src="images/logo.png"
-            alt="Open Edx Logo"
-            className="img-fluid"
-            style={{height: "100px"}}
-          />
+          <img src="/images/logo.png" alt="Logo" className="img-fluid" style={{height: "100px"}} />
           <h2 className="nav-logotext">FILLOP TECH LTD</h2>
           <p className="nav-logosubtext">...simplifying your tech world</p>
         </a>
@@ -70,7 +69,9 @@ const Navbar = () => {
           {navItems.map((item, i) => (
             <div key={i} className="position-relative">
               {item.type === "button" ? (
-                <button className="btn nav-btn">{item.label}</button>
+                <button onClick={() => navigate(item.link)} className="btn nav-btn">
+                  {item.label}
+                </button>
               ) : (
                 <a href={item.link || "#"} className=" text-decoration-none fw-medium">
                   {item.label}

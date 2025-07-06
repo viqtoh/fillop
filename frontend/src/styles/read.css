@@ -1,0 +1,567 @@
+#mainReader {
+  height: calc(100vh - 54px);
+}
+.navbar {
+  height: 54px;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+}
+.readerHouse {
+  position: relative;
+  top: 54px;
+  height: calc(100vh - 54px);
+}
+.sidebar2 {
+  position: fixed;
+  top: 0;
+  left: 0; /* Always positioned left, but moved out with transform */
+  width: 350px;
+  height: 100vh;
+  background-color: #212529;
+  color: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1050; /* Higher than navbar and overlay */
+  padding: 1rem;
+  padding-top: 200px;
+}
+
+.sidebar2.open {
+  transform: translateX(0);
+}
+
+.sidebar2 a {
+  color: white;
+  display: block;
+  padding: 10px 0;
+  text-decoration: none;
+}
+
+.sidebar2 a:hover {
+  background-color: #495057;
+  padding-left: 10px;
+  transition: all 0.2s;
+}
+
+.hamburger2 {
+  margin-left: 350px;
+  background-color: transparent;
+}
+
+.hamburger2:hover,
+.hamburger2:active,
+.hamburger3:hover,
+.hamburger3:active {
+  background-color: transparent !important;
+  color: white !important;
+}
+
+.hamburgerclosed {
+  margin-left: 0px;
+}
+
+.hamburger3 {
+  display: none;
+}
+.readerBody {
+  width: 100%;
+  min-height: calc(100vh - 54px);
+  overflow: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-color: #212529 #fff;
+}
+.readerBody::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+@media screen and (max-width: 768px) {
+  .sidebar2 {
+    width: 250px;
+    height: 100vh;
+    max-width: 90%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    z-index: 1050;
+    padding: 1rem;
+    padding-top: 20px;
+    background-color: #212529;
+    color: white;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .hamburger2 {
+    margin-left: 0px;
+  }
+
+  .hamburger3 {
+    display: block;
+    align-self: flex-end;
+    justify-self: flex-start;
+    margin-bottom: 100px;
+    border: none;
+  }
+}
+
+.sideCourse {
+  display: block;
+  width: 100%;
+  margin-bottom: 25px;
+}
+.sideCourseSub {
+  display: flex;
+  border-bottom: 1px solid #77777799;
+  width: 100%;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 5px;
+}
+
+.sideCourseSub p {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 0px !important;
+  color: white;
+  width: calc(100% - 10px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.1;
+}
+
+.sideCourseSub p:hover {
+  white-space: inherit;
+  background-color: #212529;
+}
+.learnPresent {
+  margin-left: 10px;
+  width: calc(100% - 10px);
+  margin-top: 20px;
+}
+.sideModule {
+  padding: 10px 5px;
+  background-color: #03030322;
+  transition: height 5s ease;
+  border-bottom: 1px solid #38373799;
+}
+
+.sideModule span {
+  font-size: 12px;
+}
+
+.h-0 {
+  height: 0 !important;
+  padding: 0px !important;
+  overflow: hidden !important;
+}
+
+.readLearnPath div span,
+.readLearnPath div p {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.menu {
+  font-size: 12px;
+  font-family: monospace;
+  color: white;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+.headerRead {
+  display: flex;
+  gap: 2;
+}
+.headerRead p {
+  margin-left: 20px;
+  margin-bottom: 0px;
+}
+
+.activeCourseBanner {
+  width: 100%;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.activeCourseBanner img {
+  width: 100%;
+  height: auto;
+  max-height: 400px; /* Adjust this as needed */
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.activeCourseTitle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+
+  text-align: center;
+  padding: 0 1rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  max-width: 600px;
+  text-wrap: wrap;
+}
+.activeCourseTitle h1 {
+  text-transform: capitalize;
+  font-size: 2rem;
+}
+.activeCourseButtons {
+  display: flex;
+  gap: 2;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+}
+.activeCourseButtons button {
+  background-color: white;
+  color: #444;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.activeCourseButtons span {
+  font-size: 18px;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+  background-color: #00000007;
+  padding: 5px 20px;
+  border-radius: 10px;
+  font-weight: bolder;
+}
+
+@media screen and (min-width: 1306px) {
+  .activeCourseBanner img {
+    max-height: 500px; /* Adjust this as needed */
+  }
+}
+
+@media screen and (min-width: 1487px) {
+  .activeCourseBanner img {
+    max-height: 600px; /* Adjust this as needed */
+  }
+}
+
+.activeCourseBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0px;
+  color: #455358;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: justify;
+  line-height: 1.5;
+  text-indent: 1.5rem;
+  text-align: justify;
+}
+.activeCourseDescription {
+  width: 50vw;
+}
+
+.activeCourseModules {
+  width: 50vw;
+  border-bottom: 1px solid #77777799;
+}
+
+.activeCourseMenu {
+  margin-top: 50px;
+  width: 50vw;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.activeCourseMenu p {
+  font-size: 13px;
+  font-weight: 700;
+  color: #555555cc;
+  margin: 0;
+  text-indent: 0px;
+}
+.activeIntroModule {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-top: 1px solid #77777799;
+  padding: 20px 0px;
+  width: 100%;
+}
+
+.activeIntroModule div {
+  width: calc(100% - 40px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-wrap: nowrap;
+}
+
+.activeIntroModule:hover {
+  background-color: #55555522;
+}
+
+.activeIntroModule span {
+  color: #455358;
+  font-size: 15px;
+  margin-left: 10px;
+}
+.activeModuleCircle {
+  border: 2px solid #ccc;
+  border-radius: 100%;
+  margin-right: 20px;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+@media screen and (max-width: 588px) {
+  .activeCourseTitle h1 {
+    font-size: 1.5rem;
+  }
+  .activeCourseDescription {
+    width: 90vw;
+  }
+  .activeCourseDescription span {
+    font-size: 14px;
+  }
+
+  .activeCourseModules {
+    width: 90vw;
+    padding-bottom: 50px;
+  }
+
+  .activeCourseMenu {
+    margin-top: 30px;
+    width: 90vw;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .activeCourseButtons button {
+    padding: 5px 12px;
+    font-size: 10px;
+    width: 110px;
+  }
+
+  .activeCourseButtons span {
+    font-size: 16px;
+    width: 110px;
+  }
+}
+
+#proxy-renderer {
+  height: 100%;
+}
+
+#msdoc-renderer {
+  height: 100%;
+}
+
+.videoReaderDiv {
+  height: 100%;
+  width: 100%;
+}
+
+.startdiv {
+  width: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 600px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.startdiv button {
+  background-color: #444444aa;
+  color: white;
+  border-radius: 10px;
+  padding: 10px 25px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.startdiv button svg {
+  margin-right: 10px;
+}
+
+.startdiv button span {
+  font-size: 20px;
+  color: white;
+}
+.timeLeft {
+  margin-top: 20px !important;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e70f0fcc !important;
+  margin: 0;
+  text-indent: 0px;
+}
+
+.questionCon {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  height: 100%;
+}
+.questionBody {
+  width: 100%;
+  height: fit-content;
+  background-color: #fff;
+  padding: 20px;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.questionText {
+  font-size: 20px;
+  text-align: justify;
+  color: #050505;
+}
+.questionOptions {
+  width: 40%;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  height: fit-content;
+}
+
+.fullQuestionBody {
+  height: 100%;
+}
+
+.questionCard {
+  height: 100%;
+  background-color: #f3f3f3;
+}
+
+.optionText label {
+  font-size: 15px !important;
+}
+
+.optionsBtn {
+  border-radius: 7px;
+  background-color: #007bff; /* A vibrant blue color for the next question button */
+  padding: 8px 14px;
+  color: white;
+  font-weight: bold;
+  margin-top: 50px;
+}
+.nextbtn {
+  color: white;
+  border: 1px solid white;
+  background-color: #2e2f301f;
+  padding: 5px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.nextbtn:disabled {
+  color: #444;
+  border: 1px solid #444;
+  cursor: default;
+}
+
+.nextbtn:hover {
+  background-color: #00000007;
+}
+
+.areyousure {
+  background-color: #000000c7 !important;
+  overflow: hidden;
+}
+
+.areyousure div {
+  border: none !important;
+}
+
+.areyousure div p {
+  color: white !important;
+  font-size: 16px !important;
+}
+
+.chatDiv {
+  position: absolute;
+  top: calc(100% - 100px);
+  right: calc(100px - 100%);
+}
+
+.chatbody {
+  position: fixed; /* or relative if you want it relative to a parent */
+  width: 100vw;
+  height: 100vh;
+  bottom: 0;
+  right: 0;
+  pointer-events: none; /* So clicks pass through except on chat and fab */
+  z-index: 10000;
+}
+
+.fab {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  pointer-events: auto;
+  z-index: 10;
+}
+.chat-window {
+  position: absolute;
+  bottom: 70px; /* height of Fab + some margin */
+  right: 20px;
+  width: 320px; /* or whatever width your chat uses */
+  height: 400px; /* adjust as needed */
+  pointer-events: auto;
+  z-index: 9;
+  background: white; /* or transparent */
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+}
+.modal-backdrop {
+  z-index: 200 !important;
+}
+
+.score {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px #00000007;
+}
+
+#react-doc-viewer {
+  height: auto !important;
+  min-height: 90vh !important;
+}
+.react-pdf__Page__textContent,
+.react-pdf__Page__annotations {
+  display: none !important;
+}
+
+.video-js {
+  height: calc(100vh - 54px) !important;
+}

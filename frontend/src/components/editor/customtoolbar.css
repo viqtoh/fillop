@@ -1,0 +1,41 @@
+.editor {
+  /* border: 1px solid #ddd; */
+  cursor: text;
+  padding: 16px;
+  border-radius: 2px;
+  margin-bottom: 2em;
+  /* box-shadow: inset 0px 1px 8px -3px #ABABAB; */
+  /* background: #fefefe; */
+
+  .custom-toolbar {
+    margin-bottom: 30px;
+  }
+
+  .headline-button-wrapper {
+    display: inline-block;
+  }
+
+  .headline-button {
+    background: #fbfbfb;
+    color: #888;
+    font-size: 18px;
+    border: 0;
+    padding-top: 5px;
+    vertical-align: bottom;
+    height: 34px;
+    width: 36px;
+  }
+
+  .headline-button:hover,
+  .headline-button:focus {
+    background: #f3f3f3;
+  }
+}
+
+.editor :global(.public-DraftEditor-content) {
+  min-height: 140px;
+}
+
+.editor {
+  border: 1px solid #ddd;
+}
