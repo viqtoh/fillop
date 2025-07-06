@@ -4,7 +4,14 @@ import {useState, useEffect} from "react";
 import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast";
-import {faAngleDown, faEye} from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleDown,
+  faCircleCheck,
+  faEye,
+  faSearch,
+  faUserMinus,
+  faUserPlus
+} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {useParams} from "react-router-dom";
 import {ModuleCollapsible} from "../components/AdminCollapsible";
@@ -15,6 +22,7 @@ import {useNavigate} from "react-router-dom";
 const LecturerCourse = () => {
   const token = localStorage.getItem("token");
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoading3, setIsLoading3] = useState(false);
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [isSuccess, setIsSuccess] = React.useState(true);
@@ -41,12 +49,127 @@ const LecturerCourse = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCategories2, setSelectedCategories2] = useState([]);
 
+  const [isModalInviteOpen, setIsModalInviteOpen] = useState(false);
+  const [filInvited, setFilInvited] = useState([]);
+  const [filNotInvited, setFilNotInvited] = useState([]);
+  const [invitedSearch, setInvitedSearch] = useState("");
+  const [invitingIds, setInvitingIds] = useState([]);
+  const [canInvitingIds, setCanInvitingIds] = useState([]);
+  const [inviteDueDate, setInviteDueDate] = useState(null);
+
   const {id} = useParams();
+
+  const handleInvite = async (ivstat) => {
+    setInvitingIds((prevIds) => [...prevIds, ivstat.student.id]);
+    setFilInvited([]);
+    setFilNotInvited([]);
+    try {
+      // Add dueDate to the request body if set
+      const requestBody = {
+        student_id: ivstat.student.id,
+        content_id: id,
+        type: "course",
+        search: invitedSearch || "~"
+      };
+      if (inviteDueDate) {
+        requestBody.dueDate = inviteDueDate;
+      }
+      const response = await fetch(`${API_URL}/api/lecturer/invite`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.error, false);
+      } else {
+        showToast(data.message, true);
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      }
+    } catch (err) {
+      showToast(err.message, false);
+    } finally {
+      setInvitingIds((prevIds) => prevIds.filter((id) => id !== ivstat.student.id));
+    }
+  };
+
+  const handleCancelInvite = async (ivstat) => {
+    setCanInvitingIds((prevIds) => [...prevIds, ivstat.student.id]);
+    try {
+      // Add dueDate to the request body if set
+      const requestBody = {
+        student_id: ivstat.student.id,
+        content_id: id,
+        type: "course",
+        search: invitedSearch || "~"
+      };
+      if (inviteDueDate) {
+        requestBody.dueDate = inviteDueDate;
+      }
+      const response = await fetch(`${API_URL}/api/lecturer/cancel/invite`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.error, false);
+      } else {
+        showToast(data.message, true);
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      }
+    } catch (err) {
+      showToast(err.message, false);
+    } finally {
+      setCanInvitingIds((prevIds) => prevIds.filter((id) => id !== ivstat.student.id));
+    }
+  };
+
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      setIsLoading3(true);
+
+      try {
+        const response = await fetch(
+          `${API_URL}/api/lecturer/content/invite/${id}/course/${invitedSearch || "~"}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      } catch (error) {
+        showToast("Failed to load invitations", false);
+        setIsLoading(false);
+      } finally {
+        setIsLoading3(false);
+      }
+    };
+    fetchInvitations();
+  }, [invitedSearch]);
 
   const deleteCourse = async () => {
     try {
       setIsLoading2(true);
-      const response = await fetch(`${API_URL}/api/admin/course/${id}`, {
+      const response = await fetch(`${API_URL}/api/lecturer/course/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -69,7 +192,7 @@ const LecturerCourse = () => {
   const deleteModule = async () => {
     try {
       setIsLoading2(true);
-      const response = await fetch(`${API_URL}/api/admin/module/${deleteModuleId}`, {
+      const response = await fetch(`${API_URL}/api/lecturer/module/${deleteModuleId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -91,7 +214,7 @@ const LecturerCourse = () => {
 
   const fetchCourse = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/course-full/${id}`, {
+      const response = await fetch(`${API_URL}/api/lecturer/course-full/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json"
@@ -125,7 +248,7 @@ const LecturerCourse = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/admin/category`, {
+        const response = await fetch(`${API_URL}/api/lecturer/category`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -161,7 +284,7 @@ const LecturerCourse = () => {
 
   const moveUp = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/course/${course.id}/move-up/${id}`, {
+      const response = await fetch(`${API_URL}/api/lecturer/course/${course.id}/move-up/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -185,7 +308,7 @@ const LecturerCourse = () => {
     formData["learningPathId"] = id;
 
     try {
-      const response = await fetch(`${API_URL}/api/admin/course/${id}`, {
+      const response = await fetch(`${API_URL}/api/lecturer/course/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -245,9 +368,11 @@ const LecturerCourse = () => {
                     <div className="headerDesc">
                       <span>{course.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
-                      <span>Edit course</span>
-                    </button>
+                    {course.lecturer === course.userId && (
+                      <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
+                        <span>Edit course</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -274,9 +399,11 @@ const LecturerCourse = () => {
                     <div className="headerDesc">
                       <span>{course.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
-                      <span>Edit course</span>
-                    </button>
+                    {course.lecturer === course.userId && (
+                      <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
+                        <span>Edit course</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -288,30 +415,49 @@ const LecturerCourse = () => {
               ) : (
                 <div className="adminCourseBody w-100">
                   <div className="topHCourse w-100 justify-content-between flex-wrap mb-5">
-                    <div className="green-noti-con">
-                      <div className="green-noti"></div>
-                      <p>
-                        This course is linked to {course.learningPaths.length}{" "}
-                        {course.learningPaths.length === 1 ? "learning path" : "learning paths"}.
-                      </p>
-                      <button>
-                        <FontAwesomeIcon icon={faEye} />
-                      </button>
-                    </div>
+                    {course.lecturer === course.userId && (
+                      <div className="green-noti-con">
+                        <div className="green-noti"></div>
+
+                        <p>
+                          This course is linked to {course.learningPaths.length}{" "}
+                          {course.learningPaths.length === 1 ? "learning path" : "learning paths"}.
+                        </p>
+
+                        <button>
+                          <FontAwesomeIcon icon={faEye} />
+                        </button>
+                      </div>
+                    )}
 
                     <div className="d-flex gap-2">
-                      <button className="btn btn-danger" onClick={() => setIsDeleteModalOpen(true)}>
-                        {" "}
-                        Delete Course
-                      </button>
-                      <a
-                        onClick={() =>
-                          navigate(`/admin/content-management/course/${course.id}/module/create`)
-                        }
-                        href="#"
-                      >
-                        <button className="btn btn-theme"> Add Module</button>
-                      </a>
+                      {course.lecturer === course.userId && (
+                        <button
+                          className="btn btn-theme"
+                          onClick={() => setIsModalInviteOpen(true)}
+                        >
+                          Invite Student
+                        </button>
+                      )}{" "}
+                      {course.lecturer === course.userId && (
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => setIsDeleteModalOpen(true)}
+                        >
+                          {" "}
+                          Delete Course
+                        </button>
+                      )}{" "}
+                      {course.lecturer === course.userId && (
+                        <a
+                          onClick={() =>
+                            navigate(`/admin/content-management/course/${course.id}/module/create`)
+                          }
+                          href="#"
+                        >
+                          <button className="btn btn-theme"> Add Module</button>
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="text-center w-100 d-flex flex-column justify-content-center align-items-center">
@@ -514,6 +660,187 @@ const LecturerCourse = () => {
                 ) : (
                   "Yes"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isModalInviteOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <div className="mheader">
+              <span>Invite student</span>
+            </div>
+
+            <div className="form-group">
+              <div className="inviteCon">
+                <div className="inviteSearchDiv">
+                  <input value={invitedSearch} onChange={(e) => setInvitedSearch(e.target.value)} />
+                  <FontAwesomeIcon icon={faSearch} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="course-category" className="mt-3">
+                    Invited Students
+                  </label>
+                  <div className="inviteSearch">
+                    {filInvited &&
+                      filInvited.map((ivstat, index) => (
+                        <div className="unInvitedDiv">
+                          <div className={`inviteDiv inviteDiv2  ${index !== 0 && "btop"}`}>
+                            <p>
+                              {ivstat.student.first_name} {ivstat.student.last_name}
+                            </p>
+                            {ivstat.status !== "accepted" ? (
+                              <button
+                                onClick={() => handleCancelInvite(ivstat)}
+                                disabled={canInvitingIds.includes(ivstat.student.id)}
+                              >
+                                {canInvitingIds.includes(ivstat.student.id) ? (
+                                  <span>
+                                    <span
+                                      className="spinner-border spinner-border-sm"
+                                      role="status"
+                                      aria-hidden="true"
+                                      style={{marginRight: "5px"}}
+                                    ></span>
+                                    Loading...
+                                  </span>
+                                ) : (
+                                  <>
+                                    Cancel invite <FontAwesomeIcon icon={faUserMinus} size="sm" />
+                                  </>
+                                )}{" "}
+                              </button>
+                            ) : (
+                              <div>
+                                <div className="comStatus">
+                                  <p>
+                                    {ivstat.status} <FontAwesomeIcon icon={faCircleCheck} />
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          {ivstat.status !== "accepted" && (
+                            <p>
+                              {ivstat.status} - Due{" "}
+                              {ivstat.dueDate ? (
+                                <>
+                                  {new Date(ivstat.dueDate).toLocaleString(undefined, {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  })}
+                                  {new Date(ivstat.dueDate) < new Date() && (
+                                    <span style={{color: "red", marginLeft: 6}}>(past)</span>
+                                  )}
+                                </>
+                              ) : (
+                                "N/A"
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+
+                    {!isLoading3 &&
+                      filInvited.length === 0 &&
+                      (invitedSearch ? (
+                        <p>No results found</p>
+                      ) : (
+                        <p>Search by email or full name </p>
+                      ))}
+
+                    {isLoading3 && <p>Loading...</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="course-category">Not Invited</label>
+              <div className="inviteCon">
+                <label htmlFor="invite-due-date" className="dueLabel">
+                  Due Date
+                </label>
+                <input
+                  type="datetime-local"
+                  id="invite-due-date"
+                  className="form-control"
+                  value={
+                    inviteDueDate ||
+                    (() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 7);
+                      d.setSeconds(0, 0);
+                      return d.toISOString().slice(0, 16);
+                    })()
+                  }
+                  onChange={(e) => setInviteDueDate(e.target.value)}
+                  min={(() => {
+                    const d = new Date();
+                    d.setSeconds(0, 0);
+                    return d.toISOString().slice(0, 16);
+                  })()}
+                />
+
+                <div className="inviteSearch">
+                  {filNotInvited &&
+                    filNotInvited.map((ivstat, index) => (
+                      <div className={`inviteDiv  ${index !== 0 && "btop"}`}>
+                        <p>
+                          {ivstat.student.first_name} {ivstat.student.last_name}
+                        </p>
+                        <button
+                          onClick={() => handleInvite(ivstat)}
+                          disabled={invitingIds.includes(ivstat.student.id)}
+                        >
+                          {invitingIds.includes(ivstat.student.id) ? (
+                            <span>
+                              <span
+                                className="spinner-border spinner-border-sm"
+                                role="status"
+                                aria-hidden="true"
+                                style={{marginRight: "5px"}}
+                              ></span>
+                              Inviting...
+                            </span>
+                          ) : (
+                            <>
+                              invite <FontAwesomeIcon icon={faUserPlus} size="sm" />
+                            </>
+                          )}{" "}
+                        </button>
+                      </div>
+                    ))}
+
+                  {!isLoading3 &&
+                    filNotInvited.length === 0 &&
+                    (invitedSearch ? (
+                      <p>No results found</p>
+                    ) : (
+                      <p>Search by email or full name </p>
+                    ))}
+
+                  {isLoading3 && <p>Loading...</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-buttons">
+              <div></div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setIsModalInviteOpen(false);
+                }}
+                disabled={isLoading2}
+              >
+                Close
               </button>
             </div>
           </div>

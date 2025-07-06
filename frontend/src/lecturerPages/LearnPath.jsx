@@ -4,7 +4,14 @@ import {useState, useEffect} from "react";
 import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast";
-import {faAngleDown} from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleDown,
+  faCircleCheck,
+  faCircleXmark,
+  faSearch,
+  faUserMinus,
+  faUserPlus
+} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {useNavigate, useParams} from "react-router-dom";
 import {CourseCollapsible} from "../components/AdminCollapsible";
@@ -15,6 +22,7 @@ const LecturerLearnPath = () => {
   const token = localStorage.getItem("token");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoading2, setIsLoading2] = useState(false);
+  const [isLoading3, setIsLoading3] = useState(false);
 
   const [isSuccess, setIsSuccess] = React.useState(true);
   const [toast, setToast] = useState(null);
@@ -31,7 +39,7 @@ const LecturerLearnPath = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
-  const [isModalInviteOpen, setIsModalInviteOpen] = useState(false);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [courseFormData, setCourseFormData] = useState({
@@ -41,6 +49,12 @@ const LecturerLearnPath = () => {
     show_outside: false,
     is_published: false
   });
+  const [isModalInviteOpen, setIsModalInviteOpen] = useState(false);
+  const [filInvited, setFilInvited] = useState([]);
+  const [filNotInvited, setFilNotInvited] = useState([]);
+  const [invitedSearch, setInvitedSearch] = useState("");
+  const [invitingIds, setInvitingIds] = useState([]);
+  const [canInvitingIds, setCanInvitingIds] = useState([]);
 
   const [selectedCategories, setSelectedCategories] = useState([]);
 
@@ -55,7 +69,114 @@ const LecturerLearnPath = () => {
 
   const [selectedCategories2, setSelectedCategories2] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [inviteDueDate, setInviteDueDate] = useState(null);
   const navigate = useNavigate();
+
+  const handleInvite = async (ivstat) => {
+    setInvitingIds((prevIds) => [...prevIds, ivstat.student.id]);
+    setFilInvited([]);
+    setFilNotInvited([]);
+    try {
+      // Add dueDate to the request body if set
+      const requestBody = {
+        student_id: ivstat.student.id,
+        content_id: id,
+        type: "learning_path",
+        search: invitedSearch || "~"
+      };
+      if (inviteDueDate) {
+        requestBody.dueDate = inviteDueDate;
+      }
+      const response = await fetch(`${API_URL}/api/lecturer/invite`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.error, false);
+      } else {
+        showToast(data.message, true);
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      }
+    } catch (err) {
+      showToast(err.message, false);
+    } finally {
+      setInvitingIds((prevIds) => prevIds.filter((id) => id !== ivstat.student.id));
+    }
+  };
+
+  const handleCancelInvite = async (ivstat) => {
+    setCanInvitingIds((prevIds) => [...prevIds, ivstat.student.id]);
+    try {
+      // Add dueDate to the request body if set
+      const requestBody = {
+        student_id: ivstat.student.id,
+        content_id: id,
+        type: "learning_path",
+        search: invitedSearch || "~"
+      };
+      if (inviteDueDate) {
+        requestBody.dueDate = inviteDueDate;
+      }
+      const response = await fetch(`${API_URL}/api/lecturer/cancel/invite`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.error, false);
+      } else {
+        showToast(data.message, true);
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      }
+    } catch (err) {
+      showToast(err.message, false);
+    } finally {
+      setCanInvitingIds((prevIds) => prevIds.filter((id) => id !== ivstat.student.id));
+    }
+  };
+
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      setIsLoading3(true);
+      try {
+        const response = await fetch(
+          `${API_URL}/api/lecturer/content/invite/${id}/learning_path/${invitedSearch || "~"}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        setFilInvited(data.invited);
+        setFilNotInvited(data.notInvited);
+      } catch (error) {
+        showToast("Failed to load invitations", false);
+        setIsLoading(false);
+      } finally {
+        setIsLoading3(false);
+      }
+    };
+    fetchInvitations();
+  }, [invitedSearch]);
 
   const deleteLearningPath = async () => {
     try {
@@ -391,9 +512,11 @@ const LecturerLearnPath = () => {
                     <div className="headerDesc">
                       <span>{learningPath.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
-                      <span>Edit learning path</span>
-                    </button>
+                    {learningPath.lecturer === learningPath.userId && (
+                      <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
+                        <span>Edit learning path</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -422,9 +545,11 @@ const LecturerLearnPath = () => {
                     <div className="headerDesc">
                       <span>{learningPath.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
-                      <span>Edit learning path</span>
-                    </button>
+                    {learningPath.lecturer === learningPath.userId && (
+                      <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
+                        <span>Edit learning path</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -436,9 +561,11 @@ const LecturerLearnPath = () => {
                   Delete Learning Path
                 </button>
                 <div className="d-flex gap-1">
-                  <button className="btn btn-theme" onClick={() => setIsModalInviteOpen(true)}>
-                    Invite Student
-                  </button>
+                  {learningPath.lecturer === learningPath.userId && (
+                    <button className="btn btn-theme" onClick={() => setIsModalInviteOpen(true)}>
+                      Invite Student
+                    </button>
+                  )}
                   <button className="btn btn-theme" onClick={() => setIsModalAddOpen(true)}>
                     Add Course
                   </button>
@@ -776,37 +903,180 @@ const LecturerLearnPath = () => {
       {isModalInviteOpen && (
         <div className="modal">
           <div className="modal-content">
-            <form id="courseForm mt-1" onSubmit={handleFormSubmitInvite}>
-              <div className="mheader">
-                <span>Invite student</span>
-              </div>
+            <div className="mheader">
+              <span>Invite student</span>
+            </div>
 
-              <div className="form-group">
-                <label htmlFor="course-category">Select Course</label>
-              </div>
+            <div className="form-group">
+              <div className="inviteCon">
+                <div className="inviteSearchDiv">
+                  <input value={invitedSearch} onChange={(e) => setInvitedSearch(e.target.value)} />
+                  <FontAwesomeIcon icon={faSearch} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="course-category" className="mt-3">
+                    Invited Students
+                  </label>
+                  <div className="inviteSearch">
+                    {filInvited &&
+                      filInvited.map((ivstat, index) => (
+                        <div className="unInvitedDiv">
+                          <div className={`inviteDiv inviteDiv2  ${index !== 0 && "btop"}`}>
+                            <p>
+                              {ivstat.student.first_name} {ivstat.student.last_name}
+                            </p>
+                            {ivstat.status !== "accepted" ? (
+                              <button
+                                onClick={() => handleCancelInvite(ivstat)}
+                                disabled={canInvitingIds.includes(ivstat.student.id)}
+                              >
+                                {canInvitingIds.includes(ivstat.student.id) ? (
+                                  <span>
+                                    <span
+                                      className="spinner-border spinner-border-sm"
+                                      role="status"
+                                      aria-hidden="true"
+                                      style={{marginRight: "5px"}}
+                                    ></span>
+                                    Loading...
+                                  </span>
+                                ) : (
+                                  <>
+                                    Cancel invite <FontAwesomeIcon icon={faUserMinus} size="sm" />
+                                  </>
+                                )}{" "}
+                              </button>
+                            ) : (
+                              <div>
+                                <div className="comStatus">
+                                  <p>
+                                    {ivstat.status} <FontAwesomeIcon icon={faCircleCheck} />
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          {ivstat.status !== "accepted" && (
+                            <p>
+                              {ivstat.status} - Due{" "}
+                              {ivstat.dueDate ? (
+                                <>
+                                  {new Date(ivstat.dueDate).toLocaleString(undefined, {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  })}
+                                  {new Date(ivstat.dueDate) < new Date() && (
+                                    <span style={{color: "red", marginLeft: 6}}>(past)</span>
+                                  )}
+                                </>
+                              ) : (
+                                "N/A"
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      ))}
 
-              <div className="modal-buttons">
-                <button type="submit" className="btn btn-theme">
-                  {isLoading2 ? (
-                    <div className="spinner-border text-light btnspinner" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  ) : (
-                    "Submit"
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setIsModalInviteOpen(false);
-                  }}
-                  disabled={isLoading2}
-                >
-                  Cancel
-                </button>
+                    {!isLoading3 &&
+                      filInvited.length === 0 &&
+                      (invitedSearch ? (
+                        <p>No results found</p>
+                      ) : (
+                        <p>Search by email or full name </p>
+                      ))}
+
+                    {isLoading3 && <p>Loading...</p>}
+                  </div>
+                </div>
               </div>
-            </form>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="course-category">Not Invited</label>
+              <div className="inviteCon">
+                <label htmlFor="invite-due-date" className="dueLabel">
+                  Due Date
+                </label>
+                <input
+                  type="datetime-local"
+                  id="invite-due-date"
+                  className="form-control"
+                  value={
+                    inviteDueDate ||
+                    (() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 7);
+                      d.setSeconds(0, 0);
+                      return d.toISOString().slice(0, 16);
+                    })()
+                  }
+                  onChange={(e) => setInviteDueDate(e.target.value)}
+                  min={(() => {
+                    const d = new Date();
+                    d.setSeconds(0, 0);
+                    return d.toISOString().slice(0, 16);
+                  })()}
+                />
+
+                <div className="inviteSearch">
+                  {filNotInvited &&
+                    filNotInvited.map((ivstat, index) => (
+                      <div className={`inviteDiv  ${index !== 0 && "btop"}`}>
+                        <p>
+                          {ivstat.student.first_name} {ivstat.student.last_name}
+                        </p>
+                        <button
+                          onClick={() => handleInvite(ivstat)}
+                          disabled={invitingIds.includes(ivstat.student.id)}
+                        >
+                          {invitingIds.includes(ivstat.student.id) ? (
+                            <span>
+                              <span
+                                className="spinner-border spinner-border-sm"
+                                role="status"
+                                aria-hidden="true"
+                                style={{marginRight: "5px"}}
+                              ></span>
+                              Inviting...
+                            </span>
+                          ) : (
+                            <>
+                              invite <FontAwesomeIcon icon={faUserPlus} size="sm" />
+                            </>
+                          )}{" "}
+                        </button>
+                      </div>
+                    ))}
+
+                  {!isLoading3 &&
+                    filNotInvited.length === 0 &&
+                    (invitedSearch ? (
+                      <p>No results found</p>
+                    ) : (
+                      <p>Search by email or full name </p>
+                    ))}
+
+                  {isLoading3 && <p>Loading...</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-buttons">
+              <div></div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setIsModalInviteOpen(false);
+                }}
+                disabled={isLoading2}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

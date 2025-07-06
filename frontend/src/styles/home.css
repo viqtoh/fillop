@@ -2469,3 +2469,89 @@ iframe {
     width: 120px;
   }
 }
+
+.inviteDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.inviteDiv p {
+  margin: 0px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.inviteDiv button {
+  height: fit-content;
+  padding: 4px 0px;
+  width: 100px;
+  color: #10df40;
+  border: 1px solid #10df40;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.unInvitedDiv {
+  margin-top: 10px;
+}
+.invitedDiv2 {
+  margin-top: 0px !important;
+}
+.inviteDiv2 button {
+  width: 150px;
+  color: #c80000 !important;
+  border: 1px solid #c80000 !important;
+}
+
+.btop {
+  border-top: 1px solid #333;
+}
+
+.inviteCon {
+  min-height: 200px;
+}
+
+.inviteSearch {
+  height: 100%;
+  overflow-y: scroll;
+  margin-top: 20px;
+}
+
+.inviteSearchDiv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #333 !important;
+  border-radius: 5px;
+  padding: 2px 10px;
+}
+.dueLabel {
+  margin-top: 20px;
+}
+.inviteSearchDiv input {
+  border: none !important;
+  outline: none !important;
+  width: 100%;
+}
+
+.comStatus {
+  color: #10df40;
+  border: 1px solid #10df40;
+  padding: 2px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+}
+
+.comStatus svg {
+  color: #10df40 !important;
+}

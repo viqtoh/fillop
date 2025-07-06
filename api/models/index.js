@@ -1,4 +1,4 @@
-const { Sequelize } = require("sequelize");
+const {Sequelize} = require("sequelize");
 const sequelize = require("../db");
 
 // Import models
@@ -17,20 +17,23 @@ const Option = require("./Option");
 const UserAnswer = require("./UserAnswer");
 const AttemptQuestion = require("./AttemptQuestion");
 const LoginActivity = require("./loginActivity");
+const Invitation = require("./Invitation");
+
+Invitation.belongsTo(User, {foreignKey: "studentId", as: "student"});
 
 // Define junction tables (before associations)
-const LearningPathCategory = sequelize.define("LearningPathCategory", {}, { timestamps: false });
-const CourseCategory = sequelize.define("CourseCategory", {}, { timestamps: false });
+const LearningPathCategory = sequelize.define("LearningPathCategory", {}, {timestamps: false});
+const CourseCategory = sequelize.define("CourseCategory", {}, {timestamps: false});
 
 // Define Many-to-Many associations (Only Once)
-Category.belongsToMany(LearningPath, { through: LearningPathCategory, foreignKey: "categoryId" });
+Category.belongsToMany(LearningPath, {through: LearningPathCategory, foreignKey: "categoryId"});
 LearningPath.belongsToMany(Category, {
   through: LearningPathCategory,
   foreignKey: "learningPathId"
 });
 
-Category.belongsToMany(Course, { through: CourseCategory, foreignKey: "categoryId" });
-Course.belongsToMany(Category, { through: CourseCategory, foreignKey: "courseId" });
+Category.belongsToMany(Course, {through: CourseCategory, foreignKey: "categoryId"});
+Course.belongsToMany(Category, {through: CourseCategory, foreignKey: "courseId"});
 
 LearningPath.belongsToMany(Course, {
   through: LearningPathCourse,
@@ -42,16 +45,16 @@ Course.belongsToMany(LearningPath, {
   foreignKey: "courseId"
 });
 
-UserModuleProgress.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
-User.hasMany(UserModuleProgress, { foreignKey: "userId" });
+UserModuleProgress.belongsTo(User, {foreignKey: "userId", onDelete: "CASCADE"});
+User.hasMany(UserModuleProgress, {foreignKey: "userId"});
 
-UserModuleProgress.belongsTo(Module, { foreignKey: "moduleId", onDelete: "CASCADE" });
-Module.hasMany(UserModuleProgress, { foreignKey: "moduleId" });
+UserModuleProgress.belongsTo(Module, {foreignKey: "moduleId", onDelete: "CASCADE"});
+Module.hasMany(UserModuleProgress, {foreignKey: "moduleId"});
 
 Assessment.hasMany(AssessmentAttempt);
 User.hasMany(AssessmentAttempt);
 
-Module.hasOne(Assessment, { foreignKey: "moduleId", onDelete: "CASCADE" });
+Module.hasOne(Assessment, {foreignKey: "moduleId", onDelete: "CASCADE"});
 
 Question.hasMany(Option);
 Assessment.hasMany(Question);
@@ -70,11 +73,11 @@ AssessmentAttempt.belongsToMany(Question, {
   foreignKey: "AttemptId"
 });
 
-AttemptQuestion.belongsTo(Question, { foreignKey: "QuestionId" });
-Question.hasMany(AttemptQuestion, { foreignKey: "QuestionId" });
+AttemptQuestion.belongsTo(Question, {foreignKey: "QuestionId"});
+Question.hasMany(AttemptQuestion, {foreignKey: "QuestionId"});
 
-LoginActivity.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
-User.hasMany(LoginActivity, { foreignKey: "userId" });
+LoginActivity.belongsTo(User, {foreignKey: "userId", onDelete: "CASCADE"});
+User.hasMany(LoginActivity, {foreignKey: "userId"});
 
 // Create an object to store models
 const db = {
@@ -96,12 +99,13 @@ const db = {
   Option,
   UserAnswer,
   AttemptQuestion,
-  LoginActivity
+  LoginActivity,
+  Invitation
 };
 
 // Sync database
 sequelize
-  .sync({ alter: true })
+  .sync({alter: true})
   .then(() => {
     console.log("✅ Database synchronized successfully.");
   })

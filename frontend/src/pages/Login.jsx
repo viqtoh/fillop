@@ -63,15 +63,32 @@ const Login = () => {
         showToast("Login successful!", true);
         const params = new URLSearchParams(window.location.search);
         const next = params.get("next");
-        if (data.isLecturer) {
-          window.location.href = "/lecturer/dashboard";
+        if (next) {
+          if (next.includes("lecturer")) {
+            if (data.isLecturer) {
+              window.location.href = next;
+            } else {
+              window.location.href = "/dashboard";
+            }
+          } else {
+            if (!data.isLecturer) {
+              window.location.href = next;
+            } else {
+              window.location.href = "/lecturer/dashboard";
+            }
+          }
         } else {
-          window.location.href = next || "/dashboard";
+          if (data.isLecturer) {
+            window.location.href = "/lecturer/dashboard";
+          } else {
+            window.location.href = next || "/dashboard";
+          }
         }
       } else {
         showToast(data.error || "Something went wrong", false);
       }
     } catch (error) {
+      console.error(error);
       showToast("Server error, please try again later.", false);
     }
 

@@ -20,7 +20,8 @@ const {
   AttemptQuestion,
   AssessmentAttempt,
   UserAnswer,
-  LoginActivity
+  LoginActivity,
+  Invitation
 } = require("./models");
 const {Op, fn, col} = require("sequelize");
 
@@ -4816,6 +4817,311 @@ app.get("/api/lecturer/learning-path-full/:id", authenticateToken, async (req, r
     res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching learning path:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.get("/api/lecturer/content/invite/:id/:type/:search", authenticateToken, async (req, res) => {
+  try {
+    const {id, type, search} = req.params;
+    const user = await getUserByToken(req.headers["authorization"]?.split(" ")[1]);
+
+    let whereCondition = {lecturerId: user.id};
+
+    if (type === "course") {
+      whereCondition.courseId = id;
+    } else {
+      whereCondition.LearningPathId = id;
+    }
+
+    const invitations = await Invitation.findAll({
+      where: whereCondition,
+      include: [
+        {
+          model: User,
+          as: "student",
+          attributes: {
+            exclude: ["password", "token", "createdAt", "updatedAt"]
+          }
+        }
+      ]
+    });
+
+    const invitedStudentIds = invitations.map((inv) => inv.studentId);
+
+    const allStudents = await User.findAll({
+      where: {
+        id: {
+          [Op.and]: [{[Op.notIn]: invitedStudentIds}, {[Op.ne]: user.id}]
+        },
+        isAdmin: false
+      },
+      attributes: {
+        exclude: ["password", "token", "createdAt", "updatedAt"]
+      }
+    });
+
+    const notInvited = allStudents
+      .filter((student) => {
+        const fullName = `${student.first_name} ${student.last_name}`.trim();
+        return (
+          student.email.toLowerCase() === search.toLowerCase() ||
+          fullName.toLowerCase() === search.toLowerCase()
+        );
+      })
+      .map((student) => ({
+        student,
+        status: "not_invited",
+        dueDate: null,
+        createdAt: null,
+        updatedAt: null
+      }));
+
+    const invited = invitations
+      .filter((inv) => {
+        const student = inv.student;
+        if (!student) return false;
+
+        if (!search || search.trim() === "" || search.trim() === "~") return true; // return all
+
+        const fullName = `${student.first_name} ${student.last_name}`.trim().toLowerCase();
+        const email = student.email.toLowerCase();
+        const searchLower = search.toLowerCase();
+
+        return email.includes(searchLower) || fullName.includes(searchLower);
+      })
+      .map((inv) => ({
+        student: inv.student,
+        status: inv.status,
+        dueDate: inv.dueDate,
+        createdAt: inv.createdAt,
+        updatedAt: inv.updatedAt
+      }));
+
+    res.json({invited, notInvited});
+  } catch (error) {
+    console.error("Error fetching learning path:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.post("/api/lecturer/invite", authenticateToken, async (req, res) => {
+  try {
+    const {student_id, content_id, type, search} = req.body;
+    console.log(student_id, content_id, type);
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) return res.status(401).json({error: "Token missing"});
+
+    const lecturer = await getUserByToken(token);
+    if (!lecturer) return res.status(404).json({error: "Lecturer not found"});
+
+    if (!student_id || !content_id || !type) {
+      return res.status(400).json({error: "Missing required fields"});
+    }
+
+    // Build where condition for invitation
+    const whereCondition = {
+      lecturerId: lecturer.id,
+      studentId: student_id,
+      LearningPathId: type === "learning_path" ? content_id : null,
+      courseId: type === "course" ? content_id : null
+    };
+
+    // Check if invitation already exists
+    const existingInvitation = await Invitation.findOne({where: whereCondition});
+    if (existingInvitation) {
+      return res.status(409).json({error: "Invitation already exists"});
+    }
+
+    // Create invitation
+    const dueDate = new Date();
+    if (req.body.dueDate) {
+      dueDate.setTime(new Date(req.body.dueDate).getTime());
+    } else {
+      dueDate.setDate(dueDate.getDate() + 7);
+    }
+    const invitation = await Invitation.create({
+      ...whereCondition,
+      status: "pending",
+      dueDate: dueDate
+    });
+
+    // Fetch all invitations for this content and lecturer
+    const invitations = await Invitation.findAll({
+      where: {
+        lecturerId: lecturer.id,
+        ...(type === "course" ? {courseId: content_id} : {LearningPathId: content_id})
+      },
+      include: [
+        {
+          model: User,
+          as: "student",
+          attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+        }
+      ]
+    });
+
+    const invitedStudentIds = invitations.map((inv) => inv.studentId);
+
+    // Fetch users who are not invited and not the lecturer
+    const allStudents = await User.findAll({
+      where: {
+        id: {[Op.and]: [{[Op.notIn]: invitedStudentIds}, {[Op.ne]: lecturer.id}]},
+        isAdmin: false
+      },
+      attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+    });
+
+    const searchValue = search?.trim();
+
+    const notInvited = allStudents
+      .filter((student) => {
+        if (!searchValue) return true;
+        const fullName = `${student.first_name} ${student.last_name}`.trim();
+        return (
+          student.email.toLowerCase() === searchValue.toLowerCase() ||
+          fullName.toLowerCase() === searchValue.toLowerCase()
+        );
+      })
+      .map((student) => ({
+        student: student,
+        status: "not_invited",
+        createdAt: null,
+        updatedAt: null
+      }));
+
+    const invited = invitations
+      .filter((inv) => {
+        const student = inv.student;
+        if (!student) return false;
+
+        if (!searchValue || searchValue.trim() === "" || searchValue.trim() === "~") return true;
+
+        const fullName = `${student.first_name} ${student.last_name}`.trim().toLowerCase();
+        const email = student.email.toLowerCase();
+        const searchLower = searchValue.toLowerCase();
+
+        return email.includes(searchLower) || fullName.includes(searchLower);
+      })
+      .map((inv) => ({
+        student: inv.student,
+        status: inv.status,
+        dueDate: inv.dueDate,
+        createdAt: inv.createdAt,
+        updatedAt: inv.updatedAt
+      }));
+
+    res.status(201).json({ok: true, message: "Invitation sent", invitation, invited, notInvited});
+  } catch (error) {
+    console.error("Error sending invitation:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.post("/api/lecturer/cancel/invite", authenticateToken, async (req, res) => {
+  try {
+    const {student_id, content_id, type, search} = req.body;
+    console.log(student_id, content_id, type);
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) return res.status(401).json({error: "Token missing"});
+
+    const lecturer = await getUserByToken(token);
+    if (!lecturer) return res.status(404).json({error: "Lecturer not found"});
+
+    if (!student_id || !content_id || !type) {
+      return res.status(400).json({error: "Missing required fields"});
+    }
+
+    // Build where condition for invitation
+    const whereCondition = {
+      lecturerId: lecturer.id,
+      studentId: student_id,
+      LearningPathId: type === "learning_path" ? content_id : null,
+      courseId: type === "course" ? content_id : null
+    };
+
+    // Check if invitation already exists
+    const existingInvitation = await Invitation.findOne({where: whereCondition});
+    if (!existingInvitation) {
+      return res.status(409).json({error: "Invitation does not exists"});
+    } else {
+      await existingInvitation.destroy();
+    }
+
+    // Fetch all invitations for this content and lecturer
+    const invitations = await Invitation.findAll({
+      where: {
+        lecturerId: lecturer.id,
+        ...(type === "course" ? {courseId: content_id} : {LearningPathId: content_id})
+      },
+      include: [
+        {
+          model: User,
+          as: "student",
+          attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+        }
+      ]
+    });
+
+    const invitedStudentIds = invitations.map((inv) => inv.studentId);
+
+    // Fetch users who are not invited and not the lecturer
+    const allStudents = await User.findAll({
+      where: {
+        id: {[Op.and]: [{[Op.notIn]: invitedStudentIds}, {[Op.ne]: lecturer.id}]},
+        isAdmin: false
+      },
+      attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+    });
+
+    const searchValue = search?.trim();
+
+    const notInvited = allStudents
+      .filter((student) => {
+        if (!searchValue) return true;
+        const fullName =
+          `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`.trim();
+        return (
+          student.email.toLowerCase() === searchValue.toLowerCase() ||
+          fullName === searchValue.toLowerCase()
+        );
+      })
+      .map((student) => ({
+        student: student,
+        status: "not_invited",
+        createdAt: null,
+        updatedAt: null
+      }));
+
+    const invited = invitations
+      .filter((inv) => {
+        const student = inv.student;
+        if (!student) return false;
+
+        if (!searchValue || searchValue.trim() === "" || searchValue.trim() === "~") return true;
+
+        const fullName = `${student.first_name} ${student.last_name}`.trim().toLowerCase();
+        const email = student.email.toLowerCase();
+        const searchLower = searchValue.toLowerCase();
+
+        return email.includes(searchLower) || fullName.includes(searchLower);
+      })
+      .map((inv) => ({
+        student: inv.student,
+        status: inv.status,
+        dueDate: inv.dueDate,
+        createdAt: inv.createdAt,
+        updatedAt: inv.updatedAt
+      }));
+
+    res.status(201).json({
+      ok: true,
+      message: "Invitation cancelled successfuly",
+      invited,
+      notInvited
+    });
+  } catch (error) {
+    console.error("Error cancelling invitation:", error);
     res.status(500).json({error: "Internal Server Error"});
   }
 });
