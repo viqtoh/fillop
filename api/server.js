@@ -186,6 +186,65 @@ app.get("/api/dashboard", authenticateToken, async (req, res) => {
         })
     );
 
+    const invitations = await Invitation.findAll({where: {studentId: user.id, status: "pending"}});
+    const accepted = await Invitation.findAll({where: {studentId: user.id, status: "accepted"}});
+    const pending = [];
+    const acceptedInvitations = [];
+
+    for (const inv of invitations) {
+      // Only include if dueDate is not past
+      if (inv.dueDate && new Date(inv.dueDate) < new Date()) {
+        continue;
+      }
+      let content = null;
+      if (inv.courseId) {
+        content = await Course.findByPk(inv.courseId);
+      }
+      if (inv.LearningPathId) {
+        content = await LearningPath.findByPk(inv.LearningPathId);
+      }
+      let lecturer = null;
+      if (inv.lecturerId) {
+        lecturer = await User.findOne({
+          where: {id: inv.lecturerId},
+          attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+        });
+      }
+      pending.push({
+        ...inv.toJSON(),
+        content,
+        lecturer
+      });
+    }
+
+    for (const inv of accepted) {
+      let content = null;
+      let userProgress = null;
+      let type;
+      if (inv.courseId) {
+        type = "Course";
+        content = await Course.findByPk(inv.courseId);
+        userProgress = await UserProgress.findOne({
+          where: {userId: user.id, courseId: inv.courseId}
+        });
+      } else if (inv.LearningPathId) {
+        type = "LearningPath";
+        content = await LearningPath.findByPk(inv.LearningPathId);
+        userProgress = await UserProgress.findOne({
+          where: {userId: user.id, learningPathId: inv.LearningPathId}
+        });
+      }
+      // Exclude if progress is 100
+      if (!userProgress || userProgress.progress !== 100) {
+        acceptedInvitations.push({
+          ...inv.toJSON(),
+          content,
+          userProgress,
+          type
+        });
+      }
+    }
+
     // Completed Learning Paths
     const completedPathsArr = await Promise.all(
       progresses
@@ -258,7 +317,104 @@ app.get("/api/dashboard", authenticateToken, async (req, res) => {
     return res.json({
       user: user,
       completedCourses: completedCoursesObj,
-      inCompletedCourses: inCompletedCoursesObj
+      inCompletedCourses: inCompletedCoursesObj,
+      pendingInvitaions: pending,
+      acceptedInvitations
+    });
+  } catch (error) {
+    console.error("Dashboard error:", error);
+    return res.status(500).json({error: "Failed to load dashboard data"});
+  }
+});
+
+app.post("/api/handle/invite", authenticateToken, async (req, res) => {
+  try {
+    const chuser = await getUserByToken(req.headers["authorization"]?.split(" ")[1]);
+
+    if (!chuser) {
+      return res.status(404).json({error: "User not found"});
+    }
+
+    const user = await User.findOne({where: {email: chuser.email}});
+
+    if (!user) {
+      return res.status(404).json({error: "User record not found"});
+    }
+
+    const {id, action} = req.body;
+    const inv = await Invitation.findOne({where: {id: id}});
+    if (inv) {
+      if (action === "accept") {
+        await inv.update({status: "accepted"});
+      } else if (action === "reject") {
+        await inv.update({status: "rejected"});
+      }
+    } else {
+      res.json({error: "Invitation not found"});
+    }
+    const invitations = await Invitation.findAll({where: {studentId: user.id, status: "pending"}});
+    const accepted = await Invitation.findAll({where: {studentId: user.id, status: "accepted"}});
+    const pending = [];
+    const acceptedInvitations = [];
+
+    for (const inv of invitations) {
+      // Only include if dueDate is not past
+      if (inv.dueDate && new Date(inv.dueDate) < new Date()) {
+        continue;
+      }
+      let content = null;
+      if (inv.courseId) {
+        content = await Course.findByPk(inv.courseId);
+      }
+      if (inv.LearningPathId) {
+        content = await LearningPath.findByPk(inv.LearningPathId);
+      }
+      let lecturer = null;
+      if (inv.lecturerId) {
+        lecturer = await User.findOne({
+          where: {id: inv.lecturerId},
+          attributes: {exclude: ["password", "token", "createdAt", "updatedAt"]}
+        });
+      }
+      pending.push({
+        ...inv.toJSON(),
+        content,
+        lecturer
+      });
+    }
+
+    for (const inv of accepted) {
+      let content = null;
+      let userProgress = null;
+      let type;
+      if (inv.courseId) {
+        type = "Course";
+        content = await Course.findByPk(inv.courseId);
+        userProgress = await UserProgress.findOne({
+          where: {userId: user.id, courseId: inv.courseId}
+        });
+      } else if (inv.LearningPathId) {
+        type = "Learning Path";
+        content = await LearningPath.findByPk(inv.LearningPathId);
+        userProgress = await UserProgress.findOne({
+          where: {userId: user.id, learningPathId: inv.LearningPathId}
+        });
+      }
+      // Exclude if progress is 100
+      if (!userProgress || userProgress.progress !== 100) {
+        acceptedInvitations.push({
+          ...inv.toJSON(),
+          content,
+          userProgress,
+          type
+        });
+      }
+    }
+
+    return res.json({
+      user: user,
+      pendingInvitaions: pending,
+      acceptedInvitations
     });
   } catch (error) {
     console.error("Dashboard error:", error);
@@ -3295,7 +3451,8 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
         "city",
         "country",
         "postal_code",
-        "tax_id"
+        "tax_id",
+        "isLecturer"
       ],
       where: {
         isAdmin: false,
@@ -3312,6 +3469,7 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
         const validFields = {
           email: "email",
           name: ["first_name", "last_name"],
+          role: "isLecturer",
           lastActive: "lastLogin",
           status: "isActive",
           dateAdded: "createdAt"
@@ -3348,6 +3506,7 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
       first_name: user.first_name,
       last_name: user.last_name,
       phone: user.phone,
+      role: user.isLecturer ? "Lecturer" : "Student",
       address: user.address,
       city: user.city,
       country: user.country,

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import AdminNavBar from "../components/AdminNavBar";
 import "../styles/home.css";
-import { API_URL, IMAGE_HOST } from "../constants";
+import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -13,7 +13,7 @@ import {
   faSortAlphaDesc,
   faInfoCircle
 } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 const UserManagement = () => {
   const token = localStorage.getItem("token");
@@ -189,7 +189,7 @@ const UserManagement = () => {
   const [passError, setPassError] = useState("");
 
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setEditFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -197,7 +197,7 @@ const UserManagement = () => {
   };
 
   const handleAddChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setAddFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -205,7 +205,7 @@ const UserManagement = () => {
   };
 
   const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setPasswordFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -290,7 +290,7 @@ const UserManagement = () => {
               onClick={() => {
                 const subBody = document.querySelector(".sub-body");
                 if (subBody) {
-                  subBody.scrollTo({ top: 0, behavior: "smooth" });
+                  subBody.scrollTo({top: 0, behavior: "smooth"});
                 }
               }}
             >
@@ -311,7 +311,7 @@ const UserManagement = () => {
                         setSearch(searchInput.value);
                       }
                     }}
-                    style={{ cursor: "pointer" }}
+                    style={{cursor: "pointer"}}
                   />
                   <input
                     type="text"
@@ -347,7 +347,7 @@ const UserManagement = () => {
                           const newSort = sort === "email" ? "-email" : "email";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Email
                         {sort === "email" ? (
@@ -363,7 +363,7 @@ const UserManagement = () => {
                           const newSort = sort === "name" ? "-name" : "name";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Name
                         {sort === "name" ? (
@@ -376,10 +376,26 @@ const UserManagement = () => {
                       </th>
                       <th
                         onClick={() => {
+                          const newSort = sort === "role" ? "-role" : "role";
+                          setSort(newSort);
+                        }}
+                        style={{cursor: "pointer"}}
+                      >
+                        Role
+                        {sort === "role" ? (
+                          <FontAwesomeIcon icon={faSortAlphaAsc} />
+                        ) : sort === "-role" ? (
+                          <FontAwesomeIcon icon={faSortAlphaDesc} />
+                        ) : (
+                          ""
+                        )}
+                      </th>
+                      <th
+                        onClick={() => {
                           const newSort = sort === "lastActive" ? "-lastActive" : "lastActive";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer", minWidth: "100px" }}
+                        style={{cursor: "pointer", minWidth: "100px"}}
                       >
                         Last Active
                         {sort === "lastActive" ? (
@@ -395,7 +411,7 @@ const UserManagement = () => {
                           const newSort = sort === "status" ? "-status" : "status";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Status
                         {sort === "status" ? (
@@ -411,7 +427,7 @@ const UserManagement = () => {
                           const newSort = sort === "dateAdded" ? "-dateAdded" : "dateAdded";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer", minWidth: "110px" }}
+                        style={{cursor: "pointer", minWidth: "110px"}}
                       >
                         Date Added
                         {sort === "dateAdded" ? (
@@ -422,7 +438,7 @@ const UserManagement = () => {
                           ""
                         )}
                       </th>
-                      <th style={{ minWidth: "120px" }}>Actions</th>
+                      <th style={{minWidth: "120px"}}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -468,6 +484,7 @@ const UserManagement = () => {
                         </td>
                         <td className="text-start">{user.email}</td>
                         <td>{user.name}</td>
+                        <td>{user.role}</td>
                         <td>{formatDate(user.lastActive)}</td>
                         <td>{user.status}</td>
                         <td>{formatDate(user.dateAdded)}</td>
@@ -556,7 +573,7 @@ const UserManagement = () => {
                           Previous
                         </button>
                       </li>
-                      {Array.from({ length: lastPage }, (_, i) => i + 1).map((pageNumber) => (
+                      {Array.from({length: lastPage}, (_, i) => i + 1).map((pageNumber) => (
                         <li
                           key={pageNumber}
                           className={`page-i</li>tem ${page === pageNumber ? "active" : ""}`}
@@ -621,7 +638,7 @@ const UserManagement = () => {
                     }
                   }}
                   className="form-control ms-2"
-                  style={{ display: "none" }}
+                  style={{display: "none"}}
                   id="hiddenFileInput"
                 />
                 <button
@@ -825,7 +842,7 @@ const UserManagement = () => {
                     }
                   }}
                   className="form-control ms-2"
-                  style={{ display: "none" }}
+                  style={{display: "none"}}
                   id="hiddenFileInput"
                 />
                 <button
