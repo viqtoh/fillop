@@ -32,9 +32,12 @@ require("dotenv").config();
 const app = express();
 app.use(
   cors({
-    origin: ["https://ailms.apps.ginnsltd.com", "http://localhost:3000"]
+    origin: ["https://filloptech.com", "http://localhost:3000"],
+    credentials: true
   })
 );
+
+app.options("*", cors());
 
 const bodyParser = require("body-parser");
 const fs = require("fs");
