@@ -1,6 +1,5 @@
 const {DataTypes} = require("sequelize");
 const sequelize = require("../db");
-const User = require("./User"); // This is your main User model
 
 const Invitation = sequelize.define(
   "Invitation",

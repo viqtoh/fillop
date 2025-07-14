@@ -5,7 +5,6 @@ import Toast from "../components/Toast2"; // Make sure this is defined correctly
 import AOS from "aos";
 import "aos/dist/aos.css";
 import {Parallax} from "react-parallax";
-import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-brands-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import Navbar2 from "../components/Navbar2";
 import Navbar3 from "../components/Navbar3";
@@ -29,7 +28,7 @@ const Home = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true, // Optional: Auto scroll the carousel
-    autoplaySpeed: 2000,
+    autoplaySpeed: 5000,
     appendDots: (dots) => (
       <div
         style={{
@@ -239,8 +238,8 @@ const Home = () => {
         </div>
       </div>
 
-      <section class="about-section" id="about">
-        <div class="about-content">
+      <section className="about-section" id="about">
+        <div className="about-content">
           <h2>🎓 About Fillop</h2>
           <p>
             Fillop is a next-gen learning platform that empowers lecturers and students through a
@@ -266,7 +265,7 @@ const Home = () => {
             </li>
           </ul>
         </div>
-        <div class="about-image">
+        <div className="about-image">
           <img
             src="/images/Woman_laptop2.svg"
             alt="Woman with Laptop"

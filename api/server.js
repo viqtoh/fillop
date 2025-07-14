@@ -85,7 +85,21 @@ async function getUserByToken(token) {
 }
 
 app.post("/api/register", async (req, res) => {
-  const {email, password, first_name, last_name} = req.body;
+  const {
+    email,
+    password,
+    first_name,
+    last_name,
+    phone,
+    address,
+    postal,
+    city,
+    qualification,
+    institute,
+    specialization,
+    isLecturer,
+    field
+  } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -94,15 +108,38 @@ app.post("/api/register", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({error: "Email is already registered"});
     }
-
-    const newUser = await User.create({
-      email,
-      password: hashedPassword,
-      first_name,
-      last_name
-    });
-
-    res.json({ok: true, message: "User registered successfully", user: newUser});
+    if (isLecturer) {
+      const newUser = await User.create({
+        email,
+        password: hashedPassword,
+        first_name,
+        last_name,
+        isLecturer,
+        phone,
+        address,
+        postal_code: postal,
+        city,
+        qualification,
+        institute,
+        specialization
+      });
+      res.json({ok: true, message: "User registered successfully", user: newUser});
+    } else {
+      const newUser = await User.create({
+        email,
+        password: hashedPassword,
+        first_name,
+        last_name,
+        isLecturer,
+        phone,
+        address,
+        postal_code: postal,
+        city,
+        qualification,
+        field_of_study: field
+      });
+      res.json({ok: true, message: "User registered successfully", user: newUser});
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({error: "Server error"});
@@ -674,8 +711,7 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
         address: user.address || "",
         city: user.city || "",
         postal_code: user.postal_code || "",
-        country: user.country || "",
-        tax_id: user.tax_id || ""
+        country: user.country || ""
       }
     });
   } catch (err) {
@@ -731,8 +767,7 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
       return res.status(404).json({error: "User not found"});
     }
 
-    const {first_name, last_name, phone, address, city, postal_code, country, tax_id, image} =
-      req.body;
+    const {first_name, last_name, phone, address, city, postal_code, country, image} = req.body;
     if (image && !image.startsWith("/media/")) {
       const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
@@ -760,7 +795,6 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
         city,
         postal_code,
         country,
-        tax_id,
         token: user.token
       },
       {where: {email: user.email}}
@@ -779,7 +813,6 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
         city: updatedUser.city || "",
         postal_code: updatedUser.postal_code || "",
         country: updatedUser.country || "",
-        tax_id: updatedUser.tax_id || "",
         createdAt: updatedUser.createdAt,
         image: updatedUser.image || ""
       }
@@ -3454,7 +3487,10 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
         "city",
         "country",
         "postal_code",
-        "tax_id",
+        "field_of_study",
+        "qualification",
+        "institute",
+        "specialization",
         "isLecturer"
       ],
       where: {
@@ -3514,7 +3550,10 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
       city: user.city,
       country: user.country,
       postal_code: user.postal_code,
-      tax_id: user.tax_id,
+      field_of_study: user.field_of_study,
+      qualification: user.qualification,
+      institute: user.institute,
+      specialization: user.specialization,
       isActive: user.isActive
     }));
 
@@ -3527,14 +3566,30 @@ app.get("/api/admin/users", authenticateToken, async (req, res) => {
   }
 });
 
+const saveImage = async (base64Image, email) => {
+  if (!base64Image || base64Image.startsWith("/media/")) {
+    return base64Image; // Already a media path or no new image
+  }
+
+  const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const fileName = `${email}_profile_${Date.now()}.png`;
+  const mediaDir = path.join(__dirname, "media"); // Adjust if your media dir is elsewhere
+  const filePath = path.join(mediaDir, fileName);
+
+  if (!fs.existsSync(mediaDir)) {
+    fs.mkdirSync(mediaDir, {recursive: true}); // Ensure directory exists
+  }
+
+  fs.writeFileSync(filePath, buffer);
+  return `/media/${fileName}`;
+};
+
 app.post("/api/admin/user", authenticateToken, async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({error: "Token missing"});
-    }
+    // No need to get token from header here if authenticateToken handles it,
+    // but ensure authenticateToken places user info (like role) in req.user if needed for auth.
+    // Assuming authenticateToken simply verifies and moves on.
 
     const {
       email,
@@ -3543,20 +3598,28 @@ app.post("/api/admin/user", authenticateToken, async (req, res) => {
       phone,
       address,
       city,
-      postal_code,
+      postal_code, // Frontend sends postal_code for admin forms
       country,
-      tax_id,
       image,
       password,
-      confirm_password
+      type, // 'student' or 'lecturer'
+      qualification,
+      field, // For student
+      institute, // For lecturer
+      specialization // For lecturer
     } = req.body;
 
-    if (password !== confirm_password) {
-      return res.status(400).json({error: "Password and confirm password do not match"});
+    // Basic validation common to all user types
+    if (!email || !first_name || !last_name || !password || !qualification) {
+      console.log(email, first_name, last_name, password, qualification);
+      return res.status(400).json({
+        error: "Email, First Name, Last Name, Password, and Educational Qualification are required."
+      });
     }
 
-    if (password === "" || password === null) {
-      return res.status(400).json({error: "Please Enter a Valid Password"});
+    if (password.length < 8) {
+      // Added validation from frontend
+      return res.status(400).json({error: "Password must be at least 8 characters long!"});
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -3566,8 +3629,12 @@ app.post("/api/admin/user", authenticateToken, async (req, res) => {
       return res.status(400).json({error: "Email is already registered"});
     }
 
-    await User.create({
+    const isLecturer = type === "lecturer";
+
+    // Prepare user data based on type
+    let userData = {
       email,
+      password: hashedPassword,
       first_name,
       last_name,
       phone,
@@ -3575,106 +3642,166 @@ app.post("/api/admin/user", authenticateToken, async (req, res) => {
       city,
       postal_code,
       country,
-      tax_id,
-      password: hashedPassword
-    });
+      qualification,
+      isLecturer: isLecturer // Store boolean in DB
+    };
 
-    if (image && !image.startsWith("/media/")) {
-      const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-      const fileName = `${email}_profile_${Date.now()}.png`;
-      const filePath = path.join(__dirname, "media", fileName);
-
-      // Ensure the media directory exists
-      const mediaDir = path.join(__dirname, "media");
-      if (!fs.existsSync(mediaDir)) {
-        fs.mkdirSync(mediaDir);
+    if (isLecturer) {
+      if (!institute || !specialization) {
+        return res
+          .status(400)
+          .json({error: "Institute and Specialization are required for lecturers."});
       }
-
-      // Save the image to the media folder
-      fs.writeFileSync(filePath, buffer);
-
-      // Update the user's image field with the file path
-      await User.update({image: `/media/${fileName}`}, {where: {email: email}});
+      userData.institute = institute;
+      userData.specialization = specialization;
+      // Ensure field_of_study is null for lecturers if it exists in schema
+      userData.field_of_study = null;
+    } else {
+      // Student
+      if (!field) {
+        return res.status(400).json({error: "Field of Study is required for students."});
+      }
+      userData.field_of_study = field;
+      // Ensure institute and specialization are null for students if they exist in schema
+      userData.institute = null;
+      userData.specialization = null;
     }
-    const createdUser = await User.findOne({where: {email: email}});
 
-    res.json({
+    // Handle image upload if a new image is provided
+    let imagePath = null;
+    if (image) {
+      try {
+        imagePath = await saveImage(image, email);
+        userData.image = imagePath;
+      } catch (imgErr) {
+        console.error("Error saving image:", imgErr);
+        // Decide how to handle image save failure (e.g., return error or proceed without image)
+        // For now, let's proceed but log the error
+        res.status(500).json({error: "Failed to save profile image."});
+        return;
+      }
+    }
+
+    const newUser = await User.create(userData);
+
+    res.status(201).json({
+      // 201 Created status for successful creation
       message: "User created successfully",
       user: {
-        email: createdUser.email,
-        first_name: createdUser.first_name,
-        last_name: createdUser.last_name,
-        phone: createdUser.phone || "",
-        address: createdUser.address || "",
-        city: createdUser.city || "",
-        postal_code: createdUser.postal_code || "",
-        country: createdUser.country || "",
-        tax_id: createdUser.tax_id || "",
-        createdAt: createdUser.createdAt,
-        image: createdUser.image || ""
+        id: newUser.id, // Include ID for frontend if needed
+        email: newUser.email,
+        first_name: newUser.first_name,
+        last_name: newUser.last_name,
+        phone: newUser.phone || "",
+        address: newUser.address || "",
+        city: newUser.city || "",
+        postal_code: newUser.postal_code || "",
+        country: newUser.country || "",
+        qualification: newUser.qualification || "",
+        isLecturer: newUser.isLecturer,
+        field_of_study: newUser.field_of_study || "", // Ensure field_of_study is returned if applicable
+        institute: newUser.institute || "", // Ensure institute is returned if applicable
+        specialization: newUser.specialization || "", // Ensure specialization is returned if applicable
+        createdAt: newUser.createdAt,
+        image: newUser.image || ""
       }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({error: "Server error"});
+    console.error("Error adding user:", err); // More specific error logging
+    res.status(500).json({error: "Server error occurred while adding user."});
   }
 });
 
 app.put("/api/admin/user/:id", authenticateToken, async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({error: "Token missing"});
-    }
-
     const {id} = req.params;
-
-    const {first_name, last_name, phone, address, city, postal_code, country, tax_id, image} =
-      req.body;
+    const {
+      first_name,
+      last_name,
+      phone,
+      address,
+      city,
+      postal_code, // Frontend sends postal_code for admin forms
+      country,
+      image,
+      type, // 'student' or 'lecturer'
+      qualification,
+      field, // For student
+      institute, // For lecturer
+      specialization // For lecturer
+    } = req.body;
 
     const user = await User.findOne({where: {id}});
-    if (image && !image.startsWith("/media/")) {
-      const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-      const fileName = `${user.email}_profile_${Date.now()}.png`;
-      const filePath = path.join(__dirname, "media", fileName);
-
-      // Ensure the media directory exists
-      const mediaDir = path.join(__dirname, "media");
-      if (!fs.existsSync(mediaDir)) {
-        fs.mkdirSync(mediaDir);
-      }
-
-      // Save the image to the media folder
-      fs.writeFileSync(filePath, buffer);
-
-      // Update the user's image field with the file path
-      await User.update({image: `/media/${fileName}`}, {where: {email: user.email}});
+    if (!user) {
+      return res.status(404).json({error: "User not found"});
     }
-    await User.update(
-      {
-        first_name,
-        last_name,
-        phone,
-        address,
-        city,
-        postal_code,
-        country,
-        tax_id,
-        token: user.token
-      },
-      {where: {email: user.email}}
-    );
 
-    const updatedUser = await User.findOne({where: {email: user.email}});
+    // Basic validation common to all user types
+    if (!first_name || !last_name || !qualification) {
+      return res
+        .status(400)
+        .json({error: "First Name, Last Name, and Educational Qualification are required."});
+    }
+
+    const isLecturer = type === "lecturer";
+
+    // Prepare update data object
+    let updateData = {
+      first_name,
+      last_name,
+      phone,
+      address,
+      city,
+      postal_code, // Use postal_code directly from req.body for admin
+      country,
+      qualification,
+      isLecturer: isLecturer // Update the user's type
+    };
+
+    if (isLecturer) {
+      if (!institute || !specialization) {
+        return res
+          .status(400)
+          .json({error: "Institute and Specialization are required for lecturers."});
+      }
+      updateData.institute = institute;
+      updateData.specialization = specialization;
+      // Clear student-specific fields if user is now a lecturer
+      updateData.field_of_study = null;
+    } else {
+      // Student
+      if (!field) {
+        return res.status(400).json({error: "Field of Study is required for students."});
+      }
+      updateData.field_of_study = field;
+      // Clear lecturer-specific fields if user is now a student
+      updateData.institute = null;
+      updateData.specialization = null;
+    }
+
+    // Handle image upload if a new image is provided
+    let newImagePath = user.image; // Keep existing image by default
+    if (image) {
+      try {
+        newImagePath = await saveImage(image, user.email);
+        updateData.image = newImagePath;
+      } catch (imgErr) {
+        console.error("Error saving image:", imgErr);
+        res.status(500).json({error: "Failed to save profile image."});
+        return;
+      }
+    }
+
+    // Update the user record
+    await User.update(updateData, {where: {id}});
+
+    const updatedUser = await User.findOne({where: {id}}); // Fetch updated user for response
 
     res.json({
       message: "User updated successfully",
       user: {
-        email: updatedUser.email,
+        id: updatedUser.id,
+        email: updatedUser.email, // Email should not be updated via this route, so it's from existing user
         first_name: updatedUser.first_name,
         last_name: updatedUser.last_name,
         phone: updatedUser.phone || "",
@@ -3682,14 +3809,18 @@ app.put("/api/admin/user/:id", authenticateToken, async (req, res) => {
         city: updatedUser.city || "",
         postal_code: updatedUser.postal_code || "",
         country: updatedUser.country || "",
-        tax_id: updatedUser.tax_id || "",
+        qualification: updatedUser.qualification || "",
+        isLecturer: updatedUser.isLecturer,
+        field_of_study: updatedUser.field_of_study || "",
+        institute: updatedUser.institute || "",
+        specialization: updatedUser.specialization || "",
         createdAt: updatedUser.createdAt,
         image: updatedUser.image || ""
       }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({error: "Server error"});
+    console.error("Error updating user:", err); // More specific error logging
+    res.status(500).json({error: "Server error occurred while updating user."});
   }
 });
 app.put("/api/admin/user/:id/disable", authenticateToken, async (req, res) => {
@@ -3929,8 +4060,7 @@ app.put("/api/admin/staff/:id", authenticateToken, async (req, res) => {
 
     const {id} = req.params;
 
-    const {first_name, last_name, phone, address, city, postal_code, country, tax_id, image} =
-      req.body;
+    const {first_name, last_name, phone, address, city, postal_code, country, image} = req.body;
 
     const user = await User.findOne({where: {id}});
     if (image && !image.startsWith("/media/")) {
@@ -3960,7 +4090,6 @@ app.put("/api/admin/staff/:id", authenticateToken, async (req, res) => {
         city,
         postal_code,
         country,
-        tax_id,
         token: user.token
       },
       {where: {email: user.email}}
@@ -3979,7 +4108,6 @@ app.put("/api/admin/staff/:id", authenticateToken, async (req, res) => {
         city: updatedUser.city || "",
         postal_code: updatedUser.postal_code || "",
         country: updatedUser.country || "",
-        tax_id: updatedUser.tax_id || "",
         createdAt: updatedUser.createdAt,
         image: updatedUser.image || ""
       }

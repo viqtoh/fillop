@@ -3,11 +3,13 @@ import "../styles/home.css";
 import {API_URL} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast2";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import {useNavigate} from "react-router-dom";
 
 const AdminHome = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState(null);
 
   const navigate = useNavigate();
@@ -85,14 +87,14 @@ const AdminHome = () => {
             }}
           >
             <span className="login100-form-logo">
-              <a href="#" class="navlogo mb-3">
+              <a href="#" className="navlogo mb-3">
                 <img
                   src="/images/logo.png"
                   alt="Logo"
-                  class="img-fluid"
+                  className="img-fluid"
                   style={{height: "150px"}}
                 />
-                <h2 class="nav-logotext">FILLOP TECH LTD</h2>
+                <h2 className="nav-logotext">FILLOP TECH</h2>
               </a>
             </span>
 
@@ -111,13 +113,25 @@ const AdminHome = () => {
             <div className="wrap-input100 validate-input" data-validate="Enter password">
               <input
                 className="input100"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="  "
                 value={formData.password}
                 onChange={handleChange}
               />
               <label>Password</label>
+              <i
+                className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  position: "absolute",
+                  top: "25px",
+                  right: "20px",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  color: "#666"
+                }}
+              />
             </div>
 
             <div className="container-login100-form-btn">

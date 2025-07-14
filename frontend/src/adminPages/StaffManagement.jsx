@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import AdminNavBar from "../components/AdminNavBar";
 import "../styles/home.css";
-import { API_URL, IMAGE_HOST } from "../constants";
+import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -14,7 +14,7 @@ import {
   faInfoCircle,
   faCrown
 } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 const StaffManagement = () => {
   const token = localStorage.getItem("token");
@@ -140,7 +140,7 @@ const StaffManagement = () => {
   const [addError, setAddError] = useState("");
 
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setEditFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -148,7 +148,7 @@ const StaffManagement = () => {
   };
 
   const handleAddChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setAddFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -233,7 +233,7 @@ const StaffManagement = () => {
               onClick={() => {
                 const subBody = document.querySelector(".sub-body");
                 if (subBody) {
-                  subBody.scrollTo({ top: 0, behavior: "smooth" });
+                  subBody.scrollTo({top: 0, behavior: "smooth"});
                 }
               }}
             >
@@ -254,7 +254,7 @@ const StaffManagement = () => {
                         setSearch(searchInput.value);
                       }
                     }}
-                    style={{ cursor: "pointer" }}
+                    style={{cursor: "pointer"}}
                   />
                   <input
                     type="text"
@@ -290,7 +290,7 @@ const StaffManagement = () => {
                           const newSort = sort === "email" ? "-email" : "email";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Email
                         {sort === "email" ? (
@@ -306,7 +306,7 @@ const StaffManagement = () => {
                           const newSort = sort === "name" ? "-name" : "name";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Name
                         {sort === "name" ? (
@@ -322,7 +322,7 @@ const StaffManagement = () => {
                           const newSort = sort === "lastActive" ? "-lastActive" : "lastActive";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer", minWidth: "100px" }}
+                        style={{cursor: "pointer", minWidth: "100px"}}
                       >
                         Last Active
                         {sort === "lastActive" ? (
@@ -338,7 +338,7 @@ const StaffManagement = () => {
                           const newSort = sort === "status" ? "-status" : "status";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer" }}
+                        style={{cursor: "pointer"}}
                       >
                         Status
                         {sort === "status" ? (
@@ -354,7 +354,7 @@ const StaffManagement = () => {
                           const newSort = sort === "dateAdded" ? "-dateAdded" : "dateAdded";
                           setSort(newSort);
                         }}
-                        style={{ cursor: "pointer", minWidth: "110px" }}
+                        style={{cursor: "pointer", minWidth: "110px"}}
                       >
                         Date Added
                         {sort === "dateAdded" ? (
@@ -365,7 +365,7 @@ const StaffManagement = () => {
                           ""
                         )}
                       </th>
-                      <th style={{ minWidth: "120px" }}>Actions</th>
+                      <th style={{minWidth: "120px"}}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -449,7 +449,6 @@ const StaffManagement = () => {
                                       city: user.city,
                                       country: user.country,
                                       postal_code: user.postal_code,
-                                      tax_id: user.tax_id,
                                       image: user.image
                                     });
                                     setIsEditModalOpen(true);
@@ -489,7 +488,7 @@ const StaffManagement = () => {
                           Previous
                         </button>
                       </li>
-                      {Array.from({ length: lastPage }, (_, i) => i + 1).map((pageNumber) => (
+                      {Array.from({length: lastPage}, (_, i) => i + 1).map((pageNumber) => (
                         <li
                           key={pageNumber}
                           className={`page-i</li>tem ${page === pageNumber ? "active" : ""}`}
@@ -557,7 +556,7 @@ const StaffManagement = () => {
                     }
                   }}
                   className="form-control ms-2"
-                  style={{ display: "none" }}
+                  style={{display: "none"}}
                   id="hiddenFileInput"
                 />
                 <button
@@ -737,7 +736,7 @@ const StaffManagement = () => {
                     }
                   }}
                   className="form-control ms-2"
-                  style={{ display: "none" }}
+                  style={{display: "none"}}
                   id="hiddenFileInput"
                 />
                 <button

@@ -61,8 +61,7 @@ const Profile = () => {
     address: "",
     country: "",
     postal_code: "",
-    city: "",
-    tax_id: ""
+    city: ""
   });
 
   const [passwordFormData, setPasswordFormData] = useState({
@@ -230,10 +229,6 @@ const Profile = () => {
                     <p>City/State</p>
                     <p className="mb-3 fw-bold">{user?.city || "N/A"}</p>
                   </div>
-                  <div>
-                    <p>Tax ID</p>
-                    <p className="mb-3 fw-bold">{user?.tax_id || "N/A"}</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -399,16 +394,6 @@ const Profile = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Tax ID</label>
-                <input
-                  type="text"
-                  name="tax_id"
-                  value={editFormData.tax_id}
-                  onChange={handleEditChange}
-                  className="form-control"
-                />
-              </div>
               <div className="modal-buttons">
                 <button type="submit" className="btn btn-theme">
                   {isLoading ? (

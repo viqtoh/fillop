@@ -5,7 +5,13 @@ import Toast from "../components/Toast2"; // Make sure this is defined correctly
 import AOS from "aos";
 import "aos/dist/aos.css";
 import {Parallax} from "react-parallax";
-import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-brands-svg-icons";
+import {
+  faXTwitter,
+  faYoutube,
+  faFacebook,
+  faInstagram,
+  faLinkedin
+} from "@fortawesome/free-brands-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -45,28 +51,28 @@ const ContactUs = () => {
           <div className="col-md-6 mb-4">
             <h4>Get in Touch</h4>
             <p>
-              <strong>Address:</strong> 12 Innovation Drive, Tech Valley, Lagos, Nigeria
+              <strong>Email:</strong> support@filloptech.com
             </p>
             <p>
-              <strong>Email:</strong> support@fillop.com
-            </p>
-            <p>
-              <strong>Phone:</strong> +234 800 000 0000
+              <strong>Phone:</strong> +234 (802) 641-4352, +1 (217) 216-0029
             </p>
 
             <h5 className="mt-4">Follow Us</h5>
             <div className="d-flex gap-3 fs-4">
-              <a href="#" className="text-dark">
+              <a href="http://facebook.com/filloptech" target="_blank" className="text-dark">
                 <FontAwesomeIcon icon={faFacebook} />
               </a>
-              <a href="#" className="text-dark">
-                <FontAwesomeIcon icon={faTwitter} />
+              <a href="http://x.com/filloptech" target="_blank" className="text-dark">
+                <FontAwesomeIcon icon={faXTwitter} />
               </a>
-              <a href="#" className="text-dark">
+              <a href="http://instagram.com/filloptech" target="_blank" className="text-dark">
                 <FontAwesomeIcon icon={faInstagram} />
               </a>
-              <a href="#" className="text-dark">
+              <a href="http://linkedin.com/in/filloptech" target="_blank" className="text-dark">
                 <FontAwesomeIcon icon={faLinkedin} />
+              </a>
+              <a href="http://youtube.com/@filloptech" target="_blank" className="text-dark">
+                <FontAwesomeIcon icon={faYoutube} />
               </a>
             </div>
           </div>
@@ -74,7 +80,7 @@ const ContactUs = () => {
           {/* Contact Form */}
           <div className="col-md-6">
             <h4>Send a Message</h4>
-            <form>
+            <form className="contactForm">
               <div className="mb-3">
                 <label htmlFor="name" className="form-label">
                   Full Name

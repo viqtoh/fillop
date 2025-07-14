@@ -63,8 +63,22 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true
     },
-    tax_id: {
-      type: DataTypes.STRING
+
+    field_of_study: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    qualification: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    institute: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    specialization: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     lastLogin: {
       type: DataTypes.DATE,

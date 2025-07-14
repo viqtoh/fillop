@@ -481,19 +481,25 @@ nav .position-relative:hover .dropdown-menu {
   font-size: 20px;
   line-height: 1;
   margin: 0px;
-  -webkit-text-stroke: 1px #135180;
-  text-stroke: 1px #135180;
-  color: white;
+  color: #135180;
+  -webkit-text-stroke: 1px #2680c5;
+  text-align: center;
 }
 .nav-logosubtext {
-  font-size: 10px;
+  font-size: 12px;
   text-align: end;
   line-height: 1;
   font-weight: 800;
   margin: 0px;
-  -webkit-text-stroke: 1px #135180;
-  text-stroke: 1px #135180;
-  color: white;
+  -webkit-text-stroke: 1px rgb(253, 190, 72);
+  color: orange;
+}
+.nav2con .nav-logotext {
+  font-weight: 1000;
+}
+
+.nav2con .nav-logosubtext {
+  font-weight: 700;
 }
 
 .dropdown-menu {
@@ -773,7 +779,6 @@ nav .position-relative:hover .dropdown-menu {
 }
 .carousel-image {
   height: auto;
-  max-height: 80vh;
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
@@ -858,6 +863,101 @@ nav .position-relative:hover .dropdown-menu {
   display: none !important;
 }
 
+@media screen and (max-width: 768px) {
+  .carousel-container {
+    height: 470px;
+  }
+  .slick-slider,
+  .slick-list,
+  .slick-track {
+    height: 100%;
+  }
+  .slick-slide div {
+    height: 100%;
+  }
+  .carousel-image {
+    object-fit: cover !important;
+    height: 100%;
+  }
+}
+.homeBannerText2 a {
+  margin-top: 20px;
+}
+
+@media screen and (min-width: 846px) {
+  .carousel-container,
+  .slick-slider,
+  .slick-list,
+  .slick-track {
+    max-height: 600px;
+  }
+}
+
+@media screen and (min-width: 1000px) {
+  .carousel-container,
+  .slick-slider,
+  .slick-list,
+  .slick-track {
+    max-height: 800px;
+  }
+}
+
+@media screen and (max-width: 860px) and (min-width: 539px) {
+  .carousel-container {
+    height: 600px;
+  }
+  .homeBannerText2 p {
+    font-size: 18px !important;
+  }
+}
+
+@media screen and (max-width: 538px) {
+  .carousel-container {
+    height: 570px;
+  }
+}
+
+@media screen and (max-width: 341px) {
+  .carousel-container {
+    height: 520px;
+  }
+}
+@media screen and (min-width: 944px) {
+  .limNav {
+    width: 80% !important;
+    max-width: 800px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .mnavlogo {
+    height: 100px !important;
+  }
+}
+@media (min-width: 768px) {
+  .nav2con {
+    max-width: unset !important;
+  }
+  .mynavlink {
+    color: white !important;
+    background-color: #33333359;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  .mynavlink a {
+    color: white !important;
+  }
+}
+
+.tabbtn {
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+  color: #374151 !important;
+}
+
+.tabbtn.active {
+  color: #2680c5 !important;
+}
+
 .homeBannerText2 {
   display: flex;
   flex-direction: column;
@@ -874,23 +974,37 @@ nav .position-relative:hover .dropdown-menu {
 .homeBannerText2 h1 {
   color: white;
   font-size: 40px;
-  -webkit-text-stroke: 1px #135180;
-  text-stroke: 1px #135180;
-}
-.homeBannerText2 p {
-  color: white;
-  font-size: 22px;
   font-weight: 800;
-  -webkit-text-stroke: 1px #135180;
-  text-stroke: 0.1px #135180;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 1);
+}
+
+.homeBannerText2 p {
+  color: #f0f8ff;
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 1.5px 1.5px 5px rgba(0, 0, 0, 1);
+}
+
+.homeBannerText2::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 8px;
 }
 
 .homeBannerText2 a {
   width: 180px;
-  background-color: white;
-  color: #135180;
+  background-color: #135180;
+  color: white;
   border: 1px solid #135180;
   transition-duration: 0.5s;
+}
+.homeBannerText2 a:hover {
+  background-color: transparent;
+  color: white !important;
+  text-shadow: 1.5px 1.5px 5px rgba(0, 0, 0, 1);
+  border: 1px solid white !important;
 }
 .homeBannerText2Sub {
   display: none;
@@ -1112,4 +1226,9 @@ body {
 .map-responsive iframe {
   width: 100%;
   height: 100%;
+}
+
+.contactForm label {
+  position: relative;
+  transform: translateY(0px) !important;
 }

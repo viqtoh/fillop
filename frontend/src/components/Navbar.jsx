@@ -53,11 +53,14 @@ const Navbar = () => {
 
   return (
     <header className="p-3 ">
-      <div className="container d-flex align-items-center justify-content-between py-3 ms-lg-5 ms-0">
+      <div className="nav2con container d-flex align-items-center justify-content-between py-3">
         <a href="/" className="navlogo">
-          <img src="/images/logo.png" alt="Logo" className="img-fluid" style={{height: "100px"}} />
-          <h2 className="nav-logotext">FILLOP TECH LTD</h2>
-          <p className="nav-logosubtext">...simplifying your tech world</p>
+          <img
+            src="/images/logo_text.png"
+            alt="Logo"
+            className="img-fluid mnavlogo"
+            style={{height: "130px"}}
+          />
         </a>
         <button
           className="btn btn-outline-light d-lg-none ham2"
@@ -65,9 +68,9 @@ const Navbar = () => {
         >
           ☰
         </button>
-        <nav className="d-none d-lg-flex gap-3 nav1">
+        <nav className="d-none d-lg-flex gap-3 nav1 limNav justify-content-evenly">
           {navItems.map((item, i) => (
-            <div key={i} className="position-relative">
+            <div key={i} className={`${item.type !== "button" && "mynavlink"} position-relative`}>
               {item.type === "button" ? (
                 <button onClick={() => navigate(item.link)} className="btn nav-btn">
                   {item.label}

@@ -53,9 +53,12 @@ const Navbar3 = () => {
     <header className="nav3 shadow p-3 ">
       <div className="container d-flex align-items-center justify-content-between">
         <a href="/" className="navlogo3">
-          <img src="/images/logo.png" alt="Logo" className="img-fluid" style={{height: "100px"}} />
-          <h2 className="nav-logotext">FILLOP TECH LTD</h2>
-          <p className="nav-logosubtext">...simplifying your tech world</p>
+          <img
+            src="/images/logo_text.png"
+            alt="Logo"
+            className="img-fluid mnavlogo"
+            style={{height: "130px"}}
+          />
         </a>
         <button
           className="btn btn-outline-light d-lg-none me-3 ham2"

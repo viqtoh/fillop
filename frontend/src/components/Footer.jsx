@@ -1,5 +1,12 @@
 import React from "react";
-import {faTwitter, faFacebook, faInstagram, faLinkedin} from "@fortawesome/free-brands-svg-icons";
+import {
+  faTwitter,
+  faFacebook,
+  faInstagram,
+  faLinkedin,
+  faYoutube,
+  faXTwitter
+} from "@fortawesome/free-brands-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 const Footer = () => {
@@ -10,8 +17,7 @@ const Footer = () => {
           <div className="footer-column">
             <h3>Contact Us</h3>
             <p>Email: support@filloptech.com</p>
-            <p>Phone: +123 456 7890</p>
-            <p>Address: 123 Fillop Street, City, Country</p>
+            <p>Phone: +234 (802) 641-4352, +1 (217) 216-0029</p>
           </div>
 
           <div className="footer-column">
@@ -37,17 +43,28 @@ const Footer = () => {
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Fillop Tech. All rights reserved.</p>
           <div className="footer-social">
-            <a href="#" className="footer-social-icon">
+            <a href="http://facebook.com/filloptech" target="_blank" className="footer-social-icon">
               <FontAwesomeIcon icon={faFacebook} />
             </a>
-            <a href="#" className="footer-social-icon">
+            <a
+              href="http://instagram.com/filloptech"
+              target="_blank"
+              className="footer-social-icon"
+            >
               <FontAwesomeIcon icon={faInstagram} />
             </a>
-            <a href="#" className="footer-social-icon">
-              <FontAwesomeIcon icon={faTwitter} />
+            <a href="http://x.com/filloptech" target="_blank" className="footer-social-icon">
+              <FontAwesomeIcon icon={faXTwitter} />
             </a>
-            <a href="#" className="footer-social-icon">
+            <a
+              href="http://linkedin.com/in/filloptech"
+              target="_blank"
+              className="footer-social-icon"
+            >
               <FontAwesomeIcon icon={faLinkedin} />
+            </a>
+            <a href="http://youtube.com/@filloptech" target="_blank" className="footer-social-icon">
+              <FontAwesomeIcon icon={faYoutube} />
             </a>
           </div>
         </div>

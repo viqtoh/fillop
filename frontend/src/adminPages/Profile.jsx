@@ -1,11 +1,11 @@
 import React from "react";
 import "../styles/home.css";
-import { useState, useEffect } from "react";
-import { API_URL, IMAGE_HOST } from "../constants";
+import {useState, useEffect} from "react";
+import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast";
-import { faCrown, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faCrown, faInfoCircle} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import AdminNavBar from "../components/AdminNavBar";
 
 const AdminProfile = () => {
@@ -61,8 +61,7 @@ const AdminProfile = () => {
     address: "",
     country: "",
     postal_code: "",
-    city: "",
-    tax_id: ""
+    city: ""
   });
 
   const [passwordFormData, setPasswordFormData] = useState({
@@ -72,7 +71,7 @@ const AdminProfile = () => {
   });
 
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setEditFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -80,7 +79,7 @@ const AdminProfile = () => {
   };
 
   const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setPasswordFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -293,7 +292,7 @@ const AdminProfile = () => {
                     }
                   }}
                   className="form-control ms-2"
-                  style={{ display: "none" }}
+                  style={{display: "none"}}
                   id="hiddenFileInput"
                 />
                 <button
