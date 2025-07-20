@@ -18,6 +18,8 @@ const UserAnswer = require("./UserAnswer");
 const AttemptQuestion = require("./AttemptQuestion");
 const LoginActivity = require("./loginActivity");
 const Invitation = require("./Invitation");
+const ArticleCategory = require("./ArticleCategory");
+const Article = require("./Article");
 
 Invitation.belongsTo(User, {foreignKey: "studentId", as: "student"});
 
@@ -100,7 +102,9 @@ const db = {
   UserAnswer,
   AttemptQuestion,
   LoginActivity,
-  Invitation
+  Invitation,
+  ArticleCategory,
+  Article
 };
 
 // Sync database

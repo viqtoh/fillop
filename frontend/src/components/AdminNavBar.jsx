@@ -7,7 +7,8 @@ import {
   faBell,
   faBuilding,
   faFolderClosed,
-  faFolderOpen
+  faFolderOpen,
+  faNewspaper
 } from "@fortawesome/free-regular-svg-icons";
 import {useEffect} from "react";
 import {
@@ -186,6 +187,27 @@ const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
               </a>
             </li>
           )}
+          {title !== "News Management" ? (
+            <li>
+              <a onClick={() => navigate("/admin/news-management")} href="#">
+                <FontAwesomeIcon icon={faNewspaper} />
+                News Management
+              </a>
+            </li>
+          ) : (
+            <li className="active">
+              <a
+                onClick={() => navigate("/admin/news-management")}
+                href="#"
+                className="d-flex align-items-center"
+              >
+                <div className="staffIconDiv">
+                  <FontAwesomeIcon icon={faNewspaper} />
+                </div>
+                News Management
+              </a>
+            </li>
+          )}
           <li className={`${title === "Profile" ? "active" : ""}`}>
             <a
               onClick={() => navigate("/admin/account/settings")}
@@ -293,6 +315,28 @@ const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
                   <FontAwesomeIcon icon={faBriefcase} />
                 </div>
                 Staff Management
+              </a>
+            </li>
+          )}
+
+          {title !== "News Management" ? (
+            <li>
+              <a onClick={() => navigate("/admin/news-management")} href="#">
+                <FontAwesomeIcon icon={faNewspaper} />
+                News Management
+              </a>
+            </li>
+          ) : (
+            <li className="active">
+              <a
+                onClick={() => navigate("/admin/news-management")}
+                href="#"
+                className="d-flex align-items-center"
+              >
+                <div className="staffIconDiv">
+                  <FontAwesomeIcon icon={faNewspaper} />
+                </div>
+                News Management
               </a>
             </li>
           )}

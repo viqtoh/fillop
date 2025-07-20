@@ -10,6 +10,8 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Navbar3 from "../components/Navbar3";
+import BlogComponent from "./BlogComponent";
+import {API_URL} from "../constants";
 
 const News = () => {
   useEffect(() => {
@@ -33,6 +35,17 @@ const News = () => {
     };
   }, []);
 
+  // IMPORTANT:
+  // 1. You need to define your API_BASE_URL for the blog posts.
+  //    This should be the URL of your Django REST Framework API endpoint for articles.
+  //    Example: "http://localhost:8000/api/articles/" or "/api/articles/" if on same domain.
+  const API_BASE_URL_FOR_BLOGS = `${API_URL}/api/articles/`;
+
+  // 2. You need to provide the categories data to the BlogComponent.
+  //    In a real application, you might fetch these categories from an API too,
+  //    or if your Django template renders this React app, you might pass them
+  //    from the Django context into a JavaScript variable.
+
   return (
     <div>
       <Navbar />
@@ -41,6 +54,13 @@ const News = () => {
       <div className="container py-5" data-aos="fade-up">
         <h2 className="text-center mb-4">News</h2>
       </div>
+
+      {/* Integrate the BlogComponent here */}
+      <BlogComponent
+        apiBaseUrl={API_BASE_URL_FOR_BLOGS}
+        backgroundColor="bg-white" // Example: Matches a Bootstrap background color
+        enableTitleAnimation={true} // Example: Pass boolean based on your Django instance setting
+      />
 
       <Footer />
     </div>

@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const authenticateToken = require("./middleware/auth");
 const pool = require("./db");
+const fsp = require("fs/promises");
 const {Sequelize} = require("sequelize");
 const {
   User,
@@ -21,7 +22,9 @@ const {
   AssessmentAttempt,
   UserAnswer,
   LoginActivity,
-  Invitation
+  Invitation,
+  ArticleCategory,
+  Article
 } = require("./models");
 const {Op, fn, col} = require("sequelize");
 
@@ -38,7 +41,7 @@ app.use(
 );
 
 app.options("*", cors());
-
+const multer = require("multer");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
@@ -60,6 +63,53 @@ function formatDate(date) {
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
+// Generic function to create storage for different image types
+const createImageStorage = (folderName) =>
+  multer.diskStorage({
+    // REMOVED 'async' from the destination function here
+    destination: (req, file, cb) => {
+      const baseUploadPath = path.join(__dirname, "media"); // Assuming 'uploads' is in the same directory as this file for simplicity
+      const uploadPath = path.join(baseUploadPath, folderName);
+
+      // Use fs.promises.mkdir().then().catch() to handle the async operation
+      fs.promises
+        .mkdir(uploadPath, {recursive: true})
+        .then(() => {
+          cb(null, uploadPath); // Success: call the callback with null for error and the path
+        })
+        .catch((error) => {
+          console.error(`Error creating upload directory ${uploadPath}:`, error);
+          cb(error); // Error: call the callback with the error
+        });
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  });
+
+const uploadBlogImage = multer({storage: createImageStorage("blog_images")});
+const uploadAuthorImage = multer({storage: createImageStorage("blog_images")});
+const uploadEditorImage = multer({storage: createImageStorage("editor_images")}); // For Quill/TinyMCE content images
+
+// --- Helper function to delete old files ---
+const deleteOldFile = async (filePath) => {
+  if (filePath && filePath.startsWith("/media/")) {
+    // Construct full path relative to the server.js file's directory
+    // Ensure this path correctly resolves to your actual image storage location
+    const fullPath = path.join(__dirname, filePath);
+    try {
+      await fsp.unlink(fullPath); // Use fsp.unlink (the promise-based version)
+      console.log(`Deleted old file: ${fullPath}`);
+    } catch (error) {
+      // Ignore if file doesn't exist (ENOENT) or other minor errors during deletion
+      if (error.code !== "ENOENT") {
+        console.warn(`Could not delete old file ${fullPath}:`, error);
+      }
+    }
+  }
+};
 
 async function getUserByToken(token) {
   try {
@@ -5412,6 +5462,718 @@ app.post("/api/lecturer/cancel/invite", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Error cancelling invitation:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+//region Articles
+
+const getDateRangeFilter = (dateRange) => {
+  const now = new Date();
+  let startDate = null;
+
+  switch (dateRange) {
+    case "last_7_days":
+      startDate = new Date(now.setDate(now.getDate() - 7));
+      break;
+    case "last_30_days":
+      startDate = new Date(now.setDate(now.getDate() - 30));
+      break;
+    case "last_6_months":
+      startDate = new Date(now.setMonth(now.getMonth() - 6));
+      break;
+    case "this_year":
+      startDate = new Date(now.getFullYear(), 0, 1); // January 1st of current year
+      break;
+    default:
+      return {}; // No date filter for 'all_time' or invalid
+  }
+  return {publishedDate: {[Op.gte]: startDate}};
+};
+
+// --- Article Categories API ---
+
+// GET all categories (Public)
+app.get("/api/articles/categories", async (req, res) => {
+  try {
+    const categories = await ArticleCategory.findAll({
+      attributes: ["id", "name"], // Only return id and name
+      order: [["name", "ASC"]]
+    });
+    // Frontend expects `name` in original case, but stored in lower.
+    // Convert back for display
+    const formattedCategories = categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name.charAt(0).toUpperCase() + cat.name.slice(1) // Capitalize first letter
+    }));
+    res.json(formattedCategories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// CREATE a new category (Admin only)
+app.post("/api/admin/articles/categories", authenticateToken, async (req, res) => {
+  try {
+    const {name} = req.body;
+    if (!name) {
+      return res.status(400).json({error: "Category name is required."});
+    }
+
+    const existingCategory = await ArticleCategory.findOne({
+      where: {name: name.toLowerCase()} // Check case-insensitively
+    });
+    if (existingCategory) {
+      return res.status(409).json({error: "Category with this name already exists."});
+    }
+
+    const category = await ArticleCategory.create({name});
+    res.status(201).json({
+      message: "Category created successfully",
+      category: {
+        id: category.id,
+        name: category.name.charAt(0).toUpperCase() + category.name.slice(1) // Return formatted name
+      }
+    });
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// UPDATE a category by ID (Admin only)
+app.put("/api/admin/articles/categories/:id", authenticateToken, async (req, res) => {
+  try {
+    const {id} = req.params;
+    const {name} = req.body;
+
+    if (!name) {
+      return res.status(400).json({error: "Category name is required."});
+    }
+
+    const category = await ArticleCategory.findByPk(id);
+    if (!category) {
+      return res.status(404).json({error: "Category not found."});
+    }
+
+    // Check for duplicate name if changed
+    if (name.toLowerCase() !== category.name) {
+      const existingCategory = await ArticleCategory.findOne({
+        where: {name: name.toLowerCase()}
+      });
+      if (existingCategory && existingCategory.id !== category.id) {
+        return res.status(409).json({error: "Category with this name already exists."});
+      }
+    }
+
+    await category.update({name});
+    res.json({
+      message: "Category updated successfully",
+      category: {
+        id: category.id,
+        name: category.name.charAt(0).toUpperCase() + category.name.slice(1)
+      }
+    });
+  } catch (error) {
+    console.error("Error updating category:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// DELETE a category by ID (Admin only)
+app.delete(
+  "/api/admin/articles/categories/:id",
+  authenticateToken,
+
+  async (req, res) => {
+    try {
+      const {id} = req.params;
+      const category = await ArticleCategory.findByPk(id);
+
+      if (!category) {
+        return res.status(404).json({error: "Category not found."});
+      }
+
+      // Optional: Check if articles are associated before deleting
+      const articlesCount = await Article.count({where: {categoryId: id}});
+      if (articlesCount > 0) {
+        return res.status(400).json({
+          error:
+            "Cannot delete category with associated articles. Please reassign or delete articles first."
+        });
+      }
+
+      await category.destroy();
+      res.status(204).send(); // No Content
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({error: "Internal Server Error"});
+    }
+  }
+);
+
+// --- Articles API ---
+
+// GET all articles with search, filter, and pagination (Public)
+app.get("/api/articles", async (req, res) => {
+  try {
+    const {search, date_range, category, popularity, page = 1, limit = 9} = req.query; // Default limit 9 for 3 columns x 3 rows
+
+    const where = {};
+    const order = [];
+    let include = [];
+    let summary = ""; // For results_summary text
+
+    // Search query
+    if (search) {
+      where[Op.or] = [
+        {title: {[Op.iLike]: `%${search}%`}}, // Case-insensitive search
+        {content: {[Op.iLike]: `%${search}%`}}
+      ];
+      summary += `Showing results for "${search}". `;
+    }
+
+    // Date range filter
+    const dateFilter = getDateRangeFilter(date_range);
+    Object.assign(where, dateFilter); // Merge date filter into where clause
+
+    if (date_range && date_range !== "all_time") {
+      summary += `Filtered by date: ${date_range.replace(/_/g, " ")}. `;
+    }
+
+    // Category filter
+    if (category && category !== "all") {
+      const selectedCategory = await ArticleCategory.findOne({
+        where: {name: category.toLowerCase()}
+      });
+      if (selectedCategory) {
+        where.categoryId = selectedCategory.id;
+        summary += `Category: ${
+          selectedCategory.name.charAt(0).toUpperCase() + selectedCategory.name.slice(1)
+        }. `;
+      } else {
+        // If category not found, no articles will match, but don't error out
+        // Simply return no articles.
+        console.warn(`Category "${category}" not found.`);
+      }
+    }
+
+    // Popularity/Order
+    switch (popularity) {
+      case "top_trending":
+        order.push(["views", "DESC"]);
+        summary += `Sorted by popularity.`;
+        break;
+      case "oldest_first":
+        order.push(["publishedDate", "ASC"]);
+        summary += `Sorted oldest first.`;
+        break;
+      case "newest_first": // Default behavior
+      default:
+        order.push(["publishedDate", "DESC"]);
+        summary += `Sorted newest first.`;
+        break;
+    }
+
+    // Include category data to get category name
+    include.push({
+      model: ArticleCategory,
+      as: "category",
+      attributes: ["name"] // Only fetch the name
+    });
+
+    // Pagination
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    const {count, rows} = await Article.findAndCountAll({
+      where,
+      order,
+      offset,
+      limit: parseInt(limit),
+      include
+    });
+
+    const total_pages = Math.ceil(count / parseInt(limit));
+
+    const results = rows.map((article) => ({
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      content: article.content,
+      published_date: article.publishedDate,
+      image_url: article.imageUrl,
+      author_name: article.authorName,
+      author_image_url: article.authorImageUrl,
+      views: article.views,
+      category_name: article.category
+        ? article.category.name.charAt(0).toUpperCase() + article.category.name.slice(1)
+        : null // Capitalize
+    }));
+
+    res.json({
+      results,
+      total_articles: count,
+      total_pages,
+      current_page: parseInt(page),
+      results_summary: summary.trim() || "Showing all blog posts."
+    });
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.get("/api/admin/articles", async (req, res) => {
+  try {
+    // Extract sort and order directly
+    const {search, date_range, category, page = 1, limit = 9, sort, order} = req.query;
+
+    const where = {};
+    const orderClause = []; // Renamed from 'order' to avoid conflict with req.query.order
+    let include = [];
+    let summary = ""; // For results_summary text
+
+    // Search query
+    if (search) {
+      where[Op.or] = [
+        {title: {[Op.iLike]: `%${search}%`}}, // Case-insensitive search
+        {content: {[Op.iLike]: `%${search}%`}}
+      ];
+      summary += `Showing results for "${search}". `;
+    }
+
+    // Date range filter
+    const dateFilter = getDateRangeFilter(date_range);
+    Object.assign(where, dateFilter); // Merge date filter into where clause
+
+    if (date_range && date_range !== "all_time") {
+      summary += `Filtered by date: ${date_range.replace(/_/g, " ")}. `;
+    }
+
+    // Category filter
+    if (category && category !== "all") {
+      const selectedCategory = await ArticleCategory.findOne({
+        where: {name: category.toLowerCase()}
+      });
+      if (selectedCategory) {
+        where.categoryId = selectedCategory.id;
+        summary += `Category: ${
+          selectedCategory.name.charAt(0).toUpperCase() + selectedCategory.name.slice(1)
+        }. `;
+      } else {
+        console.warn(`Category "${category}" not found.`);
+      }
+    }
+
+    // --- Dynamic Sorting based on 'sort' and 'order' parameters ---
+    const allowedSortFields = ["title", "publishedDate", "views", "authorName"]; // Define allowed fields to prevent SQL injection
+    const sortField = allowedSortFields.includes(sort) ? sort : "publishedDate"; // Default sort by publishedDate
+    const sortOrder =
+      order && ["asc", "desc"].includes(order.toLowerCase()) ? order.toUpperCase() : "DESC"; // Default order DESC
+
+    orderClause.push([sortField, sortOrder]);
+    summary += `Sorted by ${sortField} (${sortOrder}).`;
+
+    // You can remove the 'popularity' switch case block if you're using 'sort' and 'order' directly.
+    // If you want to keep both, you'd need to prioritize: e.g., if 'sort' is provided, use it; otherwise, fall back to 'popularity'.
+
+    // Include category data to get category name
+    include.push({
+      model: ArticleCategory,
+      as: "category",
+      attributes: ["name"] // Only fetch the name
+    });
+
+    // Pagination
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    const {count, rows} = await Article.findAndCountAll({
+      where,
+      order: orderClause, // Use the dynamically constructed orderClause
+      offset,
+      limit: parseInt(limit),
+      include
+    });
+
+    const total_pages = Math.ceil(count / parseInt(limit));
+
+    const results = rows.map((article) => ({
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      content: article.content,
+      published_date: article.publishedDate,
+      image_url: article.imageUrl,
+      author_name: article.authorName,
+      author_image_url: article.authorImageUrl,
+      views: article.views,
+      category_name: article.category
+        ? article.category.name.charAt(0).toUpperCase() + article.category.name.slice(1)
+        : null // Capitalize
+    }));
+
+    res.json({
+      results,
+      total_articles: count,
+      total_pages,
+      current_page: parseInt(page),
+      results_summary: summary.trim() || "Showing all blog posts."
+    });
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+app.post("/api/articles/:slug/increment-views", async (req, res) => {
+  try {
+    const {slug} = req.params;
+    let ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "")
+      .split(",")[0]
+      .trim();
+
+    const article = await Article.findOne({
+      where: {slug}
+    });
+
+    if (!article) {
+      return res.status(404).json({error: "Article not found."});
+    }
+
+    // Initialize viewed_ips. Sequelize with DataTypes.ARRAY will ensure
+    // article.viewed_ips is already a JavaScript array when retrieved.
+    const viewedIps = article.viewed_ips || [];
+
+    if (!viewedIps.includes(ip)) {
+      viewedIps.push(ip);
+      article.views += 1;
+      article.viewed_ips = JSON.stringify(viewedIps);
+      await article.save();
+    }
+    const refreshed = await Article.findOne({where: {slug}});
+
+    res.json({
+      message: "View counted (if IP was unique).",
+      ips: article.viewed_ips, // This will be a JavaScript array
+      ip: ip
+    });
+  } catch (error) {
+    console.error("Error incrementing article view:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.get("/api/articles/:slug", async (req, res) => {
+  try {
+    const {slug} = req.params;
+
+    // 1. Fetch the main article
+    const article = await Article.findOne({
+      where: {slug},
+      include: [{model: ArticleCategory, as: "category", attributes: ["name"]}]
+    });
+
+    if (!article) {
+      return res.status(404).json({error: "Article not found."});
+    }
+
+    // 2. Find similar articles
+    let similarArticles = [];
+    const maxSimilarArticles = 4; // Maximum number of similar articles to return
+
+    // Prepare title keywords for search (e.g., split title into words, remove common ones)
+    const titleKeywords = article.title
+      .split(/\s+/) // Split by whitespace
+      .filter(
+        (word) => word.length > 3 && !["the", "and", "for", "with"].includes(word.toLowerCase())
+      ) // Filter out short common words
+      .map((word) => `%${word.toLowerCase()}%`); // Prepare for ILIKE/LIKE
+
+    let titleSearchConditions = [];
+    if (titleKeywords.length > 0) {
+      titleSearchConditions = titleKeywords.map((keyword) => ({
+        title: {[Op.iLike]: keyword} // Op.iLike for case-insensitive LIKE (PostgreSQL). Use Op.like for MySQL/SQLite.
+      }));
+    }
+
+    // Build the initial query for similar articles
+    const initialSimilarArticlesQuery = {
+      where: {
+        id: {[Op.ne]: article.id}, // Exclude the current article
+        [Op.or]: [
+          {authorName: article.authorName}, // Same author (uses authorName as per your model)
+          // *** THIS IS THE PREVIOUSLY FIXED LINE FOR "NOT ITERABLE" ***
+          ...(titleSearchConditions.length > 0 ? [{[Op.or]: titleSearchConditions}] : [])
+        ]
+      },
+      include: [{model: ArticleCategory, as: "category", attributes: ["name"]}],
+      limit: maxSimilarArticles,
+      order: [
+        ["publishedDate", "DESC"] // Order by most recent.
+      ],
+      attributes: ["id", "title", "slug", "imageUrl", "publishedDate", "authorName"]
+    };
+
+    similarArticles = await Article.findAll(initialSimilarArticlesQuery);
+
+    // If we don't have enough similar articles, try a broader search or fill up
+    if (similarArticles.length < maxSimilarArticles) {
+      const foundSimilarIds = new Set(similarArticles.map((art) => art.id));
+      foundSimilarIds.add(article.id); // Also exclude the main article
+
+      const fallbackArticles = await Article.findAll({
+        where: {
+          id: {[Op.notIn]: Array.from(foundSimilarIds)}, // Exclude current and already found articles
+          [Op.or]: [
+            {authorName: article.authorName},
+            {
+              title: {
+                [Op.iLike]: `%${article.title
+                  .substring(0, Math.min(article.title.length, 15))
+                  .toLowerCase()}%`
+              }
+            }
+          ]
+        },
+        include: [{model: ArticleCategory, as: "category", attributes: ["name"]}],
+        limit: maxSimilarArticles - similarArticles.length, // Only fetch what's needed
+        order: [["publishedDate", "DESC"]],
+        attributes: ["id", "title", "slug", "imageUrl", "publishedDate", "authorName"]
+      });
+
+      // Merge and remove duplicates
+      const uniqueSimilarArticles = new Map();
+      [...similarArticles, ...fallbackArticles].forEach((art) =>
+        uniqueSimilarArticles.set(art.id, art)
+      );
+      similarArticles = Array.from(uniqueSimilarArticles.values()).slice(0, maxSimilarArticles);
+    }
+
+    // Format similar articles for response
+    const formattedSimilarArticles = similarArticles.map((simArticle) => ({
+      id: simArticle.id,
+      title: simArticle.title,
+      slug: simArticle.slug,
+      image_url: simArticle.imageUrl,
+      published_date: simArticle.publishedDate,
+      author_name: simArticle.authorName,
+      category_name: simArticle.category
+        ? simArticle.category.name.charAt(0).toUpperCase() + simArticle.category.name.slice(1)
+        : null
+    }));
+
+    res.json({
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      content: article.content,
+      published_date: article.publishedDate,
+      image_url: article.imageUrl,
+      author_name: article.authorName,
+      author_image_url: article.authorImageUrl,
+      views: article.views,
+      category_name: article.category
+        ? article.category.name.charAt(0).toUpperCase() + article.category.name.slice(1)
+        : null,
+      similar_articles: formattedSimilarArticles // Include similar articles
+    });
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+// CREATE a new article (Admin only)
+app.post(
+  "/api/admin/articles",
+  authenticateToken,
+  uploadBlogImage.fields([
+    {name: "blogImage", maxCount: 1},
+    {name: "authorImage", maxCount: 1}
+  ]),
+  async (req, res) => {
+    try {
+      const {title, content, authorName} = req.body;
+
+      let {categoryId} = req.body;
+      if (categoryId) {
+        categoryId = parseInt(categoryId, 10);
+      }
+
+      // Get file paths from multer
+      const blogImageFile = req.files && req.files["blogImage"] ? req.files["blogImage"][0] : null;
+      const authorImageFile =
+        req.files && req.files["authorImage"] ? req.files["authorImage"][0] : null;
+
+      // Construct image URLs for saving to the database
+      const imageUrl = blogImageFile ? `/media/blog_images/${blogImageFile.filename}` : null;
+      const authorImageUrl = authorImageFile
+        ? `/media/blog_images/${authorImageFile.filename}`
+        : null;
+
+      // Basic validation (content is now an HTML string, might be empty if editor is blank)
+      if (!title || !authorName || !categoryId) {
+        // Content can be an empty string from Quill if user inputs nothing
+        return res
+          .status(400)
+          .json({error: "Missing required fields: title, authorName, categoryId."});
+      }
+
+      const categoryExists = await ArticleCategory.findByPk(categoryId);
+      if (!categoryExists) {
+        return res.status(400).json({error: "Invalid category ID."});
+      }
+
+      const article = await Article.create({
+        title,
+        content, // HTML content from rich text editor
+        imageUrl: imageUrl, // Use image_url to match DB schema if it's different from imageUrl
+        authorName: authorName, // Use author_name to match DB schema
+        authorImageUrl: authorImageUrl, // Use author_image_url to match DB schema
+        categoryId: categoryId // Use category_id to match DB schema
+      });
+
+      res.status(201).json({message: "Article created successfully", article});
+    } catch (error) {
+      console.error("Error creating article:", error);
+      // If an error occurs, delete any newly uploaded files to prevent orphans
+      if (req.files) {
+        if (req.files["blogImage"] && req.files["blogImage"][0]) {
+          await deleteOldFile(`/media/blog_images/${req.files["blogImage"][0].filename}`);
+        }
+        if (req.files["authorImage"] && req.files["authorImage"][0]) {
+          await deleteOldFile(`/media/blog_images/${req.files["authorImage"][0].filename}`);
+        }
+      }
+      res.status(500).json({error: "Internal Server Error"});
+    }
+  }
+);
+
+// UPDATE an article by slug (Admin only)
+app.put(
+  "/api/admin/articles/:slug",
+  authenticateToken,
+  uploadBlogImage.fields([
+    {name: "blogImage", maxCount: 1},
+    {name: "authorImage", maxCount: 1}
+  ]),
+  async (req, res) => {
+    try {
+      const {slug} = req.params;
+      // req.body contains text fields and potentially old image URLs if not changed/removed
+      const {title, content, imageUrl, authorName, authorImageUrl, categoryId, views} = req.body;
+
+      // Get newly uploaded files from multer
+      const newBlogImageFile =
+        req.files && req.files["blogImage"] ? req.files["blogImage"][0] : null;
+      const newAuthorImageFile =
+        req.files && req.files["authorImage"] ? req.files["authorImage"][0] : null;
+
+      const article = await Article.findOne({where: {slug}});
+      if (!article) {
+        // If article not found, delete any newly uploaded files for this request
+        if (newBlogImageFile)
+          await deleteOldFile(`/media/blog_images/${newBlogImageFile.filename}`);
+        if (newAuthorImageFile)
+          await deleteOldFile(`/media/blog_images/${newAuthorImageFile.filename}`);
+        return res.status(404).json({error: "Article not found."});
+      }
+
+      // --- Determine final image URLs based on user input and existing data ---
+      let finalBlogImageUrl = article.imageUrl;
+      if (newBlogImageFile) {
+        // A new blog image was uploaded, delete the old one
+        await deleteOldFile(article.imageUrl);
+        finalBlogImageUrl = `/media/blog_images/${newBlogImageFile.filename}`;
+      } else if (imageUrl === "") {
+        // Frontend explicitly sent empty string for imageUrl, means user removed it
+        await deleteOldFile(article.imageUrl);
+        finalBlogImageUrl = null; // Set to null in DB
+      }
+      // Else (imageUrl is not changed, it's the old path from req.body), finalBlogImageUrl remains article.image_url
+
+      let finalAuthorImageUrl = article.authorImageUrl;
+      if (newAuthorImageFile) {
+        // A new author image was uploaded, delete the old one
+        await deleteOldFile(article.authorImageUrl);
+        finalAuthorImageUrl = `/media/blog_images/${newAuthorImageFile.filename}`;
+      } else if (authorImageUrl === "") {
+        await deleteOldFile(article.authorImageUrl);
+        finalAuthorImageUrl = null;
+      }
+
+      if (categoryId) {
+        const categoryExists = await ArticleCategory.findByPk(categoryId);
+        if (!categoryExists) {
+          // If category ID is invalid, delete any newly uploaded files for this request
+          if (newBlogImageFile)
+            await deleteOldFile(`/media/blog_images/${newBlogImageFile.filename}`);
+          if (newAuthorImageFile)
+            await deleteOldFile(`/media/blog_images/${newAuthorImageFile.filename}`);
+          return res.status(400).json({error: "Invalid category ID."});
+        }
+      }
+
+      await article.update({
+        title: title || article.title,
+        content: content,
+        imageUrl: finalBlogImageUrl,
+        authorName: authorName || article.authorName,
+        authorImageUrl: finalAuthorImageUrl,
+        categoryId: categoryId || article.categoryId,
+        views: views !== undefined ? views : article.views // Allow updating views manually
+      });
+
+      res.json({message: "Article updated successfully", article});
+    } catch (error) {
+      console.error("Error updating article:", error);
+      // If an error occurs, delete any newly uploaded files to prevent orphans
+      if (req.files) {
+        if (req.files["blogImage"] && req.files["blogImage"][0]) {
+          await deleteOldFile(`/media/blog_images/${req.files["blogImage"][0].filename}`);
+        }
+        if (req.files["authorImage"] && req.files["authorImage"][0]) {
+          await deleteOldFile(`/media/blog_images/${req.files["authorImage"][0].filename}`);
+        }
+      }
+      res.status(500).json({error: "Internal Server Error"});
+    }
+  }
+);
+
+// NEW: Endpoint for rich text editor image uploads (Quill/TinyMCE)
+app.post(
+  "/api/admin/upload-editor-image",
+  authenticateToken,
+  uploadEditorImage.single("file"),
+  async (req, res) => {
+    // `file` is the default field name used by our custom imageHandler on the frontend
+    if (!req.file) {
+      return res.status(400).json({error: "No file uploaded."});
+    }
+
+    // Construct the URL that will be inserted into the article content by the editor
+    const imageUrl = `/media/editor_images/${req.file.filename}`;
+
+    // The editor (Quill/TinyMCE) expects a JSON response with a 'location' property
+    res.status(200).json({location: imageUrl});
+  }
+);
+
+// DELETE an article by slug (Admin only)
+app.delete("/api/admin/articles/:slug", authenticateToken, async (req, res) => {
+  try {
+    const {slug} = req.params;
+    const article = await Article.findOne({where: {slug}});
+
+    if (!article) {
+      return res.status(404).json({error: "Article not found."});
+    }
+
+    await article.destroy();
+    res.status(204).send(); // No Content
+  } catch (error) {
+    console.error("Error deleting article:", error);
     res.status(500).json({error: "Internal Server Error"});
   }
 });

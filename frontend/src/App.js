@@ -6,6 +6,7 @@ import ContactUs from "./pages/ContactUs";
 import News from "./pages/News";
 import Education from "./pages/Education";
 import Services from "./pages/Services";
+import BlogDetail from "./pages/BlogDetail";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +22,7 @@ import AdminHome from "./adminPages/Home";
 import AdminDashboard from "./adminPages/Dashboard";
 import UserManagement from "./adminPages/UserManagement";
 import StaffManagement from "./adminPages/StaffManagement";
+import NewsManagement from "./adminPages/NewsManagement";
 import ContentManagement from "./adminPages/ContentManagement";
 import CreateContent from "./adminPages/CreateContent";
 import CategoryManagement from "./adminPages/CategoryManagement";
@@ -45,6 +47,7 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/news" element={<News />} />
+        <Route path="/news/:slug" element={<BlogDetail />} />
         <Route path="/education" element={<Education />} />
         <Route path="/services" element={<Services />} />
 
@@ -90,6 +93,7 @@ function App() {
         <Route path="/admin/category-management" element={<CategoryManagement />} />
         <Route path="/admin/user-management" element={<UserManagement />} />
         <Route path="/admin/staff-management" element={<StaffManagement />} />
+        <Route path="/admin/news-management" element={<NewsManagement />} />
         <Route path="/admin/account/settings" element={<AdminProfile />} />
 
         <Route

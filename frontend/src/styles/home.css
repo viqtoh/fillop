@@ -800,6 +800,11 @@ iframe {
   text-align: center;
 }
 
+.modal2 .modal-content {
+  width: 100% !important;
+  max-width: unset !important;
+}
+
 .form-group {
   margin-bottom: 15px;
 }

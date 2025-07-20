@@ -1,0 +1,106 @@
+.returnUp:hover {
+  background-color: #0056b3;
+}
+
+/* Table specific styles if needed beyond Bootstrap defaults */
+.table th,
+.table td {
+  vertical-align: middle;
+}
+
+/* Ensure images in the table row are small and contained */
+.table img {
+  max-width: 50px; /* Example size for author images */
+  height: auto;
+  border-radius: 50%; /* For circular author images */
+}
+
+/* Custom styles for modals if needed, beyond react-bootstrap defaults */
+/* You might want to override Bootstrap's default modal padding or margins */
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem;
+}
+
+/* Small adjustments for form inputs in modals */
+.form-control,
+.form-select {
+  border-radius: 0.25rem; /* Bootstrap's default */
+}
+
+/* Specific button styles */
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+.btn-primary:hover {
+  background-color: #0069d9;
+  border-color: #0062cc;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529; /* Dark text for warning */
+}
+.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #d39e00;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* For dropdowns if custom styles are needed */
+.dropdown-item {
+  cursor: pointer;
+}
+.dropdown-item:active {
+  background-color: #e9ecef; /* Keep Bootstrap's default active state */
+  color: #212529;
+}
+.csearchbar {
+  outline: none;
+  max-width: 500px;
+}
+.csearchbar:focus {
+  outline: none !important;
+  border-color: #dee2e6 !important;
+  box-shadow: none !important;
+}
