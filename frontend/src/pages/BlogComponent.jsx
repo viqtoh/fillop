@@ -459,136 +459,142 @@ const BlogComponent = ({apiBaseUrl, backgroundColor, enableTitleAnimation}) => {
             )}
           </div>
         </div>
-        {resultSummary && (
-          <div
-            className="result-summary-text mt-4 mb-4"
-            style={{display: resultSummary ? "block" : "none"}}
-          >
-            “<span className="dynamic">{resultSummary}</span>”
-          </div>
-        )}
         {/* Blog Grid (where results will be displayed) */}
-        <div className="row g-4 blog-grid-container">
-          {" "}
-          {/* Using Bootstrap grid classes */}
-          {isLoading ? (
-            // Bootstrap spinner or custom loader, already handled by loader-overlay
-            <div className="text-center col-12 my-5">
-              {/* The .loader-overlay is positioned absolutely over the whole section,
+        <div className="container">
+          {resultSummary && (
+            <div
+              className="result-summary-text mt-4 mb-4"
+              style={{display: resultSummary ? "block" : "none"}}
+            >
+              “<span className="dynamic">{resultSummary}</span>”
+            </div>
+          )}
+          <div className="row g-4 blog-grid-container">
+            {" "}
+            {/* Using Bootstrap grid classes */}
+            {isLoading ? (
+              // Bootstrap spinner or custom loader, already handled by loader-overlay
+              <div className="text-center col-12 my-5">
+                {/* The .loader-overlay is positioned absolutely over the whole section,
                   so this specific grid loader might not be needed or could be simplified. */}
-            </div>
-          ) : errorMessage ? (
-            <div className="no-results-message col-12 d-flex flex-column align-items-center justify-content-center py-5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-alert-circle"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" x2="12" y1="8" y2="12" />
-                <line x1="12" x2="12.01" y1="16" y2="16" />
-              </svg>
-              <span>{errorMessage}</span>
-            </div>
-          ) : articles.length === 0 ? (
-            <div className="no-results-message col-12 d-flex flex-column align-items-center justify-content-center py-5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-file-x"
-              >
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <path d="M14 2v5h5" />
-                <path d="m14.5 10.5-5 5" />
-                <path d="m9.5 10.5 5 5" />
-              </svg>
-              <span>No blog posts found matching your criteria.</span>
-            </div>
-          ) : (
-            articles.map((article) => {
-              const publishedDate = new Date(article.published_date);
-              const publishedDateFormatted = publishedDate.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              });
+              </div>
+            ) : errorMessage ? (
+              <div className="no-results-message col-12 d-flex flex-column align-items-center justify-content-center py-5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-alert-circle"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" x2="12" y1="8" y2="12" />
+                  <line x1="12" x2="12.01" y1="16" y2="16" />
+                </svg>
+                <span>{errorMessage}</span>
+              </div>
+            ) : articles.length === 0 ? (
+              <div className="no-results-message col-12 d-flex flex-column align-items-center justify-content-center py-5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-file-x"
+                >
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <path d="M14 2v5h5" />
+                  <path d="m14.5 10.5-5 5" />
+                  <path d="m9.5 10.5 5 5" />
+                </svg>
+                <span>No blog posts found matching your criteria.</span>
+              </div>
+            ) : (
+              articles.map((article) => {
+                const publishedDate = new Date(article.published_date);
+                const publishedDateFormatted = publishedDate.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                });
 
-              return (
-                <div key={article.slug} className="col-md-6 col-lg-4 d-flex">
-                  {" "}
-                  {/* Bootstrap columns for responsive grid */}
-                  <a
-                    href={`/news/${article.slug}/`}
-                    className="card blog-card flex-grow-1 border-0 rounded-0"
-                  >
+                return (
+                  <div key={article.slug} className="col-md-6 col-lg-4 d-flex">
                     {" "}
-                    {/* Use card for structure */}
-                    <div className="aspect-[4/3.5] bg-light rounded-md overflow-hidden mb-3">
+                    {/* Bootstrap columns for responsive grid */}
+                    <a
+                      href={`/news/${article.slug}/`}
+                      className="card blog-card flex-grow-1 border-0 rounded-0"
+                    >
                       {" "}
-                      {/* Use custom CSS or inline style for aspect */}
-                      <img
-                        src={
-                          article.image_url ? IMAGE_HOST + article.image_url : DEFAULT_ARTICLE_IMAGE
-                        }
-                        alt={article.title}
-                        className="img-fluid w-100 h-100 object-cover article-image"
-                      />
-                    </div>
-                    <div className="d-flex precat gap-2">
-                      {" "}
-                      {/* Use Bootstrap flex utilities */}
-                      {article.category_name && (
-                        <>
-                          <div className="article-cat Bdynamic2 badge bg-secondary text-white">
-                            {" "}
-                            {/* Use Bootstrap badge */}
-                            <span className="dynamic">{article.category_name}</span>
-                          </div>
-                          <div className="cat-dash Bdynamic2"></div>
-                        </>
-                      )}
-                      <span className="text-sm dynamic-2 text-muted">{publishedDateFormatted}</span>
-                    </div>
-                    <p className="font-weight-bold h5 dynamic mb-2">{article.title}</p>{" "}
-                    {/* Use Bootstrap h5 and font-weight */}
-                    <div className="d-flex align-items-center gap-3 dynamic-2">
-                      <div className="size-10 bg-light rounded-circle overflow-hidden d-flex justify-content-center align-items-center">
+                      {/* Use card for structure */}
+                      <div className="aspect-[4/3.5] bg-light rounded-md overflow-hidden mb-3">
                         {" "}
-                        {/* Use custom CSS or inline for size-10 */}
+                        {/* Use custom CSS or inline style for aspect */}
                         <img
                           src={
-                            article.author_image_url
-                              ? IMAGE_HOST + article.author_image_url
-                              : DEFAULT_AUTHOR_IMAGE
+                            article.image_url
+                              ? IMAGE_HOST + article.image_url
+                              : DEFAULT_ARTICLE_IMAGE
                           }
-                          alt={article.author_name || "Anonymous"}
-                          className="img-fluid rounded-circle"
-                          style={{width: "40px", height: "40px", objectFit: "cover"}}
+                          alt={article.title}
+                          className="img-fluid w-100 h-100 object-cover article-image"
                         />
                       </div>
-                      <p className="capitalize dynamic mb-0">
-                        {article.author_name || "Anonymous"}
-                      </p>
-                    </div>
-                  </a>
-                </div>
-              );
-            })
-          )}
+                      <div className="d-flex precat gap-2">
+                        {" "}
+                        {/* Use Bootstrap flex utilities */}
+                        {article.category_name && (
+                          <>
+                            <div className="article-cat Bdynamic2 badge bg-secondary text-white">
+                              {" "}
+                              {/* Use Bootstrap badge */}
+                              <span className="dynamic">{article.category_name}</span>
+                            </div>
+                            <div className="cat-dash Bdynamic2"></div>
+                          </>
+                        )}
+                        <span className="text-sm dynamic-2 text-muted">
+                          {publishedDateFormatted}
+                        </span>
+                      </div>
+                      <p className="font-weight-bold h5 dynamic mb-2">{article.title}</p>{" "}
+                      {/* Use Bootstrap h5 and font-weight */}
+                      <div className="d-flex align-items-center gap-3 dynamic-2">
+                        <div className="size-10 bg-light rounded-circle overflow-hidden d-flex justify-content-center align-items-center">
+                          {" "}
+                          {/* Use custom CSS or inline for size-10 */}
+                          <img
+                            src={
+                              article.author_image_url
+                                ? IMAGE_HOST + article.author_image_url
+                                : DEFAULT_AUTHOR_IMAGE
+                            }
+                            alt={article.author_name || "Anonymous"}
+                            className="img-fluid rounded-circle"
+                            style={{width: "40px", height: "40px", objectFit: "cover"}}
+                          />
+                        </div>
+                        <p className="capitalize dynamic mb-0">
+                          {article.author_name || "Anonymous"}
+                        </p>
+                      </div>
+                    </a>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
         {/* Pagination */}
         {totalPages > 1 && !errorMessage && articles.length > 0 && renderPagination()}

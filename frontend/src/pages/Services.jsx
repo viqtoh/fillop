@@ -57,12 +57,7 @@ const Services = () => {
       setError(null); // Clear previous errors
       try {
         // Fetch all active services from the public API route
-        const response = await fetch(
-          `${API_URL}/api/services?include_inactive=false&page=1&limit=999`, // Ensure this is your public route
-          {
-            // No Authorization header needed for public route
-          }
-        );
+        const response = await fetch(`${API_URL}/api/services`);
         const data = await response.json();
 
         if (response.ok) {

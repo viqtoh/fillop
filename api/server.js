@@ -6445,14 +6445,16 @@ app.post("/api/admin/services", authenticateToken, async (req, res) => {
 app.get("/api/services", async (req, res) => {
   try {
     // Extract query parameters
-    const {search, page = 1, limit = 9, sort, order, include_inactive} = req.query;
+    const page = 1;
+    const search = "";
+    const include_inactive = false;
 
     const options = {
       search,
       page: parseInt(page),
-      limit: parseInt(limit),
-      sort,
-      order,
+      limit: parseInt(999),
+      sort: "",
+      order: "",
       includeInactive: include_inactive === "true" // Convert string "true"/"false" to boolean
     };
 
