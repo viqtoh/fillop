@@ -88,6 +88,11 @@ const Login = () => {
         }
       } else {
         showToast(data.error || "Something went wrong", false);
+        if (data.error === "Email not verified.") {
+          localStorage.setItem("optEmail", formData.email);
+          localStorage.setItem("email", formData.email);
+          navigate("/verify-email");
+        }
       }
     } catch (error) {
       console.error(error);

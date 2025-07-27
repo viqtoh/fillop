@@ -21,7 +21,6 @@ import Modal from "react-bootstrap/Modal"; // Using react-bootstrap Modal compon
 import Form from "react-bootstrap/Form"; // Using react-bootstrap Form components
 import Button from "react-bootstrap/Button"; // Using react-bootstrap Button components
 
-// NEW: Import ReactQuill and its stylesheet
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css"; // The default theme stylesheet
 import {faEye} from "@fortawesome/free-regular-svg-icons";
@@ -1115,7 +1114,12 @@ const NewsManagement = () => {
       </Modal>
 
       {/* Manage Categories Modal */}
-      <Modal show={showCategoriesModal} onHide={() => setShowCategoriesModal(false)} size="md">
+      <Modal
+        show={showCategoriesModal}
+        className="modal2"
+        onHide={() => setShowCategoriesModal(false)}
+        size="xl"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Manage Categories</Modal.Title>
         </Modal.Header>

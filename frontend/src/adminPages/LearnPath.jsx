@@ -1,13 +1,13 @@
 import React from "react";
 import "../styles/home.css";
-import { useState, useEffect } from "react";
-import { API_URL, IMAGE_HOST } from "../constants";
+import {useState, useEffect} from "react";
+import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast";
-import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useNavigate, useParams } from "react-router-dom";
-import { CourseCollapsible } from "../components/AdminCollapsible";
+import {faAngleDown} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {useNavigate, useParams} from "react-router-dom";
+import {CourseCollapsible} from "../components/AdminCollapsible";
 import AdminNavBar from "../components/AdminNavBar";
 import Select from "react-select";
 
@@ -27,7 +27,7 @@ const AdminLearnPath = () => {
   const [acourses, setAcourses] = useState([]);
   const [acourse, setAcourse] = useState(null);
 
-  const { id } = useParams();
+  const {id} = useParams();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
@@ -143,7 +143,7 @@ const AdminLearnPath = () => {
   }, [id, token]);
 
   const handlePathChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
 
     if (name === "is_published") {
       let val = false;
@@ -163,7 +163,7 @@ const AdminLearnPath = () => {
   };
 
   const handleCourseChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const {name, value, type, checked} = e.target;
     setCourseFormData((prevData) => ({
       ...prevData,
       [name]: type === "checkbox" ? checked : value
@@ -244,7 +244,7 @@ const AdminLearnPath = () => {
       }
 
       const result = await response.json();
-      setLearningPath((prevData) => ({ ...prevData, ...result.learningPath }));
+      setLearningPath((prevData) => ({...prevData, ...result.learningPath}));
       setIsEditModalOpen(false);
       showToast("Learning path updated successfully!", true);
     } catch (error) {
@@ -356,9 +356,19 @@ const AdminLearnPath = () => {
                     <div className="headerDesc">
                       <span>{learningPath.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
-                      <span>Edit learning path</span>
-                    </button>
+                    <div className="middle-flex gap-2">
+                      <button
+                        className="btn continueBtn"
+                        onClick={() => {
+                          navigate(`/admin/content-management/path/${learningPath.id}/read`);
+                        }}
+                      >
+                        <span>Preview Learning Path</span>
+                      </button>
+                      <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
+                        <span>Edit learning path</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -387,9 +397,19 @@ const AdminLearnPath = () => {
                     <div className="headerDesc">
                       <span>{learningPath.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
-                      <span>Edit learning path</span>
-                    </button>
+                    <div className="middle-flex gap-2">
+                      <button
+                        className="btn continueBtn"
+                        onClick={() => {
+                          navigate(`/admin/content-management/path/${learningPath.id}/read`);
+                        }}
+                      >
+                        <span>Preview Learning Path</span>
+                      </button>
+                      <button className="btn continueBtn" onClick={() => setIsEditModalOpen(true)}>
+                        <span>Edit learning path</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -454,7 +474,7 @@ const AdminLearnPath = () => {
                     name="image"
                     className="form-control"
                     accept="image/*"
-                    style={{ display: "none" }}
+                    style={{display: "none"}}
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
@@ -539,7 +559,7 @@ const AdminLearnPath = () => {
                   className="basic-multi-select"
                   classNamePrefix="select"
                   id="path-category"
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  styles={{container: (base) => ({...base, width: "100%"})}}
                 />
               </div>
               <div className="form-group">
@@ -614,7 +634,7 @@ const AdminLearnPath = () => {
                     name="image"
                     className="form-control"
                     accept="image/*"
-                    style={{ display: "none" }}
+                    style={{display: "none"}}
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
@@ -682,7 +702,7 @@ const AdminLearnPath = () => {
                   className="basic-multi-select"
                   classNamePrefix="select"
                   id="course-category"
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  styles={{container: (base) => ({...base, width: "100%"})}}
                 />
               </div>
               <div className="form-group">
@@ -756,7 +776,7 @@ const AdminLearnPath = () => {
                   className="basic-multi-select"
                   classNamePrefix="select"
                   id="course-category"
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  styles={{container: (base) => ({...base, width: "100%"})}}
                 />
               </div>
 

@@ -1,16 +1,16 @@
 import React from "react";
 import "../styles/home.css";
-import { useState, useEffect } from "react";
-import { API_URL, IMAGE_HOST } from "../constants";
+import {useState, useEffect} from "react";
+import {API_URL, IMAGE_HOST} from "../constants";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Toast from "../components/Toast";
-import { faAngleDown, faEye } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useParams } from "react-router-dom";
-import { ModuleCollapsible } from "../components/AdminCollapsible";
+import {faAngleDown, faEye} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {useParams} from "react-router-dom";
+import {ModuleCollapsible} from "../components/AdminCollapsible";
 import AdminNavBar from "../components/AdminNavBar";
 import Select from "react-select";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 const AdminCourse = () => {
   const token = localStorage.getItem("token");
@@ -41,7 +41,7 @@ const AdminCourse = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCategories2, setSelectedCategories2] = useState([]);
 
-  const { id } = useParams();
+  const {id} = useParams();
 
   const deleteCourse = async () => {
     try {
@@ -152,7 +152,7 @@ const AdminCourse = () => {
   }, [token, showToast]);
 
   const handleCourseChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const {name, value, type, checked} = e.target;
     setCourseFormData((prevData) => ({
       ...prevData,
       [name]: type === "checkbox" ? checked : value
@@ -202,7 +202,7 @@ const AdminCourse = () => {
 
       const result = await response.json();
       showToast("Course updated successfully!", true);
-      setCourse((prevData) => ({ ...prevData, ...result.course }));
+      setCourse((prevData) => ({...prevData, ...result.course}));
       setIsModalOpen(false);
     } catch (error) {
       showToast("Internal Server Error", false);
@@ -245,9 +245,19 @@ const AdminCourse = () => {
                     <div className="headerDesc">
                       <span>{course.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
-                      <span>Edit course</span>
-                    </button>
+                    <div className="middle-flex gap-2">
+                      <button
+                        className="btn continueBtn"
+                        onClick={() => {
+                          navigate(`/admin/content-management/course/${course.id}/read`);
+                        }}
+                      >
+                        <span>Preview Course</span>
+                      </button>
+                      <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
+                        <span>Edit course</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -274,9 +284,19 @@ const AdminCourse = () => {
                     <div className="headerDesc">
                       <span>{course.description}</span>
                     </div>
-                    <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
-                      <span>Edit course</span>
-                    </button>
+                    <div className="middle-flex gap-2">
+                      <button
+                        className="btn continueBtn"
+                        onClick={() => {
+                          navigate(`/admin/content-management/course/${course.id}/read`);
+                        }}
+                      >
+                        <span>Preview Course</span>
+                      </button>
+                      <button className="btn continueBtn" onClick={() => setIsModalOpen(true)}>
+                        <span>Edit course</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -362,7 +382,7 @@ const AdminCourse = () => {
                     name="image"
                     className="form-control"
                     accept="image/*"
-                    style={{ display: "none" }}
+                    style={{display: "none"}}
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
@@ -430,7 +450,7 @@ const AdminCourse = () => {
                   className="basic-multi-select"
                   classNamePrefix="select"
                   id="course-category"
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  styles={{container: (base) => ({...base, width: "100%"})}}
                 />
               </div>
               <div className="form-group">

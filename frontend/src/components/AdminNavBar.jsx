@@ -23,6 +23,7 @@ import {
   faBriefcase,
   faTag
 } from "@fortawesome/free-solid-svg-icons";
+import {faServicestack} from "@fortawesome/free-brands-svg-icons";
 
 const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -165,7 +166,6 @@ const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
               User Management
             </a>
           </li>
-
           {title !== "Staff Management" ? (
             <li>
               <a onClick={() => navigate("/admin/staff-management")} href="#">
@@ -208,6 +208,27 @@ const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
               </a>
             </li>
           )}
+          {title !== "Service Management" ? (
+            <li>
+              <a onClick={() => navigate("/admin/service-management")} href="#">
+                <FontAwesomeIcon icon={faServicestack} />
+                Service Management
+              </a>
+            </li>
+          ) : (
+            <li className="active">
+              <a
+                onClick={() => navigate("/admin/service-management")}
+                href="#"
+                className="d-flex align-items-center"
+              >
+                <div className="staffIconDiv">
+                  <FontAwesomeIcon icon={faServicestack} />
+                </div>
+                Service Management
+              </a>
+            </li>
+          )}{" "}
           <li className={`${title === "Profile" ? "active" : ""}`}>
             <a
               onClick={() => navigate("/admin/account/settings")}
@@ -337,6 +358,28 @@ const AdminNavBar = ({title = "Dashboard", subTitle = "", context = ""}) => {
                   <FontAwesomeIcon icon={faNewspaper} />
                 </div>
                 News Management
+              </a>
+            </li>
+          )}
+
+          {title !== "Service Management" ? (
+            <li>
+              <a onClick={() => navigate("/admin/service-management")} href="#">
+                <FontAwesomeIcon icon={faServicestack} />
+                Service Management
+              </a>
+            </li>
+          ) : (
+            <li className="active">
+              <a
+                onClick={() => navigate("/admin/service-management")}
+                href="#"
+                className="d-flex align-items-center"
+              >
+                <div className="staffIconDiv">
+                  <FontAwesomeIcon icon={faServicestack} />
+                </div>
+                Service Management
               </a>
             </li>
           )}

@@ -31,14 +31,14 @@ import "@videojs/themes/dist/forest/index.css";
 
 // Sea
 import "@videojs/themes/dist/sea/index.css";
-import AssessmentHandler from "./AssessmentHandler";
+import AssessmentHandler from "../pages/AssessmentHandler";
 import BotpressChat from "../components/BotPressChat";
 
 const MemoizedDocRenderer = React.memo(({url}) => {
   return <DocRenderer url={url} style={{width: "100%", maxWidth: "100vw"}} />;
 });
 
-const CourseRead = () => {
+const AdminCourseRead = () => {
   const token = localStorage.getItem("token");
   const [isLoading, setIsLoading] = useState(true);
   const [courses, setCourses] = useState([]);
@@ -78,14 +78,6 @@ const CourseRead = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [mode, setMode] = useState("");
 
-  // Add dark background color to body
-  useEffect(() => {
-    document.body.style.backgroundColor = "rgb(33, 37, 41)";
-    return () => {
-      document.body.style.backgroundColor = "";
-    };
-  }, []);
-
   useEffect(() => {
     const handlePopState = () => {
       const pathname = location.pathname;
@@ -93,8 +85,8 @@ const CourseRead = () => {
 
       if (pathname.endsWith("/read")) {
         const newPath = pathId
-          ? `/content-library/path/${pathId}`
-          : `/content-library/course/${id}`;
+          ? `/admin/content-management/path/${pathId}`
+          : `/admin/content-management/course/${id}`;
 
         // Jump forward to a new state, bypassing history
         window.history.pushState({}, "", "/temp-redirect");
@@ -129,8 +121,8 @@ const CourseRead = () => {
             preload: "auto",
             userActions: {
               hotkeys: false,
-              doubleClick: true,
-              click: true
+              doubleClick: false,
+              click: false
             },
             sources: [
               {
@@ -251,7 +243,7 @@ const CourseRead = () => {
 
         if (match) {
           foundModule = match;
-          setActiveCourse(course);
+          foundCourse = course;
           break;
         }
       }
@@ -539,62 +531,11 @@ const CourseRead = () => {
   };
 
   const checkPermissionModule = (courseId, moduleId) => {
-    const course = courses.find((course) => course.id === courseId);
-    const moduleIndex = course.modules.findIndex((module) => module.id === moduleId);
-    if (course && moduleIndex !== -1) {
-      const modules = course.modules;
-      const modulesAbove = modules.slice(0, moduleIndex);
-      const allCompleted = modulesAbove.every(
-        (mod) => mod.userProgress && mod.userProgress.progress === 100
-      );
-      return allCompleted;
-    }
-    return false;
+    return true;
   };
 
   const checkPermissionCourse = (courseId) => {
-    const course = courses.find((course) => course.id === courseId);
-    const courseIndex = courses.findIndex((course) => course.id === courseId);
-    if (course && courseIndex !== -1) {
-      const coursesAbove = courses.slice(0, courseIndex);
-      const allCompleted =
-        coursesAbove.every((course) => course.progress === 100) ||
-        coursesAbove.every((course) =>
-          course.modules.every((module) => module.userProgress?.progress === 100)
-        );
-      return allCompleted;
-    }
-    return false;
-  };
-
-  const getLastPermittedModule = () => {
-    let lastPermittedModule = courses[0].modules[0];
-
-    for (const course of courses) {
-      for (let i = 0; i < course.modules.length; i++) {
-        const module = course.modules[i];
-
-        // Use your check logic inline
-        const modulesAbove = course.modules.slice(0, i);
-        const allCompleted = modulesAbove.every(
-          (mod) => mod.userProgress && mod.userProgress.progress === 100
-        );
-
-        if (i === 0 || allCompleted) {
-          lastPermittedModule = module;
-        } else {
-          // As soon as one is not permitted, stop checking modules in this course
-          break;
-        }
-      }
-
-      // If any course before is incomplete, stop checking next courses
-      if (course.progress !== 100) {
-        break;
-      }
-    }
-
-    return lastPermittedModule;
+    return true;
   };
 
   const checkLast = () => {
@@ -667,24 +608,7 @@ const CourseRead = () => {
     }
 
     try {
-      setIsLoading(true);
-      await endProgress(activeModule.id);
-      const response = await fetch(`${API_URL}/api/set/active/module`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch");
-      }
-      const data = await response.json();
-      if (data.message === "User progress updated successfully") {
-        goNext();
-      }
+      goNext();
     } catch (err) {
       showToast(err.message, false);
     } finally {
@@ -896,9 +820,9 @@ const CourseRead = () => {
                         className="btn btn-primary mt-3"
                         onClick={() => {
                           if (pathId) {
-                            navigate(`/content-library/path/${pathId}`);
+                            navigate(`/admin/content-management/path/${pathId}`);
                           } else {
-                            navigate(`/content-library/course/${id}`);
+                            navigate(`/admin/content-management/course/${id}`);
                           }
                         }}
                       >
@@ -960,7 +884,7 @@ const CourseRead = () => {
                               onEnded={() => setIsPlaying(false)}
                               controls
                               disablePictureInPicture
-                              controlsList="nodownload noremoteplayback"
+                              controlsList="nodownload nofullscreen noremoteplayback"
                             />
                             <style>
                               {`
@@ -987,10 +911,11 @@ const CourseRead = () => {
         </div>
       </div>
       {/* Confirmation Modal */}
-      {activeModule && showNextModal && (
+      {activeModule && (
         <div
           className="modal fade show"
           style={{
+            display: sidebarOpen ? "none" : "block",
             background: "rgba(0,0,0,0.5)",
             zIndex: 1050,
             position: "fixed",
@@ -1035,4 +960,4 @@ const CourseRead = () => {
   );
 };
 
-export default CourseRead;
+export default AdminCourseRead;

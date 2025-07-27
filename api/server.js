@@ -6,6 +6,7 @@ const authenticateToken = require("./middleware/auth");
 const pool = require("./db");
 const fsp = require("fs/promises");
 const {Sequelize} = require("sequelize");
+const serviceService = require("./services/serviceService");
 const {
   User,
   LearningPath,
@@ -24,9 +25,11 @@ const {
   LoginActivity,
   Invitation,
   ArticleCategory,
-  Article
+  Article,
+  Service
 } = require("./models");
 const {Op, fn, col} = require("sequelize");
+const {generateOTP, sendVerificationEmail} = require("./utils/helpers");
 
 const {startOfDay, endOfDay, subDays, startOfWeek, endOfWeek} = require("date-fns");
 
@@ -67,9 +70,8 @@ function formatDate(date) {
 // Generic function to create storage for different image types
 const createImageStorage = (folderName) =>
   multer.diskStorage({
-    // REMOVED 'async' from the destination function here
     destination: (req, file, cb) => {
-      const baseUploadPath = path.join(__dirname, "media"); // Assuming 'uploads' is in the same directory as this file for simplicity
+      const baseUploadPath = path.join(__dirname, "media");
       const uploadPath = path.join(baseUploadPath, folderName);
 
       // Use fs.promises.mkdir().then().catch() to handle the async operation
@@ -91,7 +93,8 @@ const createImageStorage = (folderName) =>
 
 const uploadBlogImage = multer({storage: createImageStorage("blog_images")});
 const uploadAuthorImage = multer({storage: createImageStorage("blog_images")});
-const uploadEditorImage = multer({storage: createImageStorage("editor_images")}); // For Quill/TinyMCE content images
+const uploadEditorImage = multer({storage: createImageStorage("editor_images")});
+const uploadDescImage = multer({storage: createImageStorage("service_description_images")}); // For Quill/TinyMCE content images
 
 // --- Helper function to delete old files ---
 const deleteOldFile = async (filePath) => {
@@ -152,12 +155,15 @@ app.post("/api/register", async (req, res) => {
   } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const existingUser = await User.findOne({where: {email}});
     if (existingUser) {
-      return res.status(400).json({error: "Email is already registered"});
+      return res.status(400).json({error: "Email is already in use"});
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = generateOTP();
+    const otp_expiry = new Date(Date.now() + 10 * 60 * 1000);
+
     if (isLecturer) {
       const newUser = await User.create({
         email,
@@ -171,7 +177,10 @@ app.post("/api/register", async (req, res) => {
         city,
         qualification,
         institute,
-        specialization
+        specialization,
+        otp,
+        otp_expiry,
+        last_sent: new Date()
       });
       res.json({ok: true, message: "User registered successfully", user: newUser});
     } else {
@@ -186,13 +195,22 @@ app.post("/api/register", async (req, res) => {
         postal_code: postal,
         city,
         qualification,
-        field_of_study: field
+        field_of_study: field,
+        otp,
+        otp_expiry,
+        last_sent: new Date()
       });
-      res.json({ok: true, message: "User registered successfully", user: newUser});
+      await sendVerificationEmail(newUser.email, otp);
+
+      res.json({
+        ok: true,
+        message: "Registration successful. Please check your email for a verification code."
+        // Do NOT send the user object or a token yet
+      });
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json({error: "Server error"});
+    res.status(500).json({error: "Server error during registration"});
   }
 });
 
@@ -207,14 +225,20 @@ app.post("/api/login", async (req, res) => {
       const validPassword = await bcrypt.compare(password, user.password);
 
       if (validPassword) {
-        // Generate JWT token
+        if (!user.emailVerified) {
+          return res.status(401).json({
+            error: "Email not verified.",
+            verificationRequired: true // A flag for your frontend
+          });
+        }
 
         if (user.isAdmin) {
-          return res.json({error: "Access denied. Login with a User Account."});
+          return res.status(403).json({error: "Access denied. Login with a User Account."});
         }
         if (!user.isActive) {
-          return res.json({error: "User Account Disabled"});
+          return res.status(403).json({error: "User Account Disabled"});
         }
+        // Generate JWT token
         const token = jwt.sign(
           {userId: user.id, email: user.email, iat: Math.floor(Date.now() / 1000)},
           process.env.JWT_SECRET,
@@ -238,6 +262,156 @@ app.post("/api/login", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({error: "Server error"});
+  }
+});
+
+const BASE_COOLDOWN_MS = 60 * 1000; // 60 seconds
+const RESET_THRESHOLD_MS = 12 * 60 * 60 * 1000; // 12 hours
+const MAX_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+const formatCooldownTime = (totalSeconds) => {
+  // Handle edge case of 0 or less
+  if (totalSeconds <= 0) {
+    return "0s";
+  }
+
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // Build the string parts
+  const parts = [];
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}m`);
+  }
+  // Always show seconds if the duration is less than a minute,
+  // or if there are leftover seconds with larger units.
+  if (seconds > 0 || totalSeconds < 60) {
+    parts.push(`${seconds}s`);
+  }
+
+  return parts.join(" ");
+};
+
+app.post("/api/send-verification", async (req, res) => {
+  const {email} = req.body;
+
+  try {
+    const user = await User.findOne({where: {email}});
+
+    if (!user) {
+      return res.status(404).json({error: "User not found."});
+    }
+    if (user.emailVerified) {
+      return res.status(400).json({error: "Email is already verified."});
+    }
+
+    const now = new Date();
+    // Get the user's current cooldown, defaulting to the base cooldown.
+    const currentCooldown = user.otp_cooldown_duration || BASE_COOLDOWN_MS;
+
+    // --- Check if user is currently in a cooldown period ---
+    if (user.last_sent) {
+      const timeSinceLastSent = now - new Date(user.last_sent);
+
+      if (timeSinceLastSent < currentCooldown) {
+        const nextCooldown = Math.min(currentCooldown * 2, MAX_COOLDOWN_MS);
+
+        const timeLeft = Math.ceil((currentCooldown - timeSinceLastSent) / 1000);
+        return res.status(429).json({
+          message: `Please wait ${formatCooldownTime(timeLeft)} before requesting a new code.`,
+          timeLeft: timeLeft // Send the remaining time
+        });
+      }
+    }
+
+    // --- ALLOWED TO SEND ---
+    // At this point, the user is allowed to receive a new OTP.
+    // Now, we determine what their *next* cooldown period will be.
+
+    let newCooldownForDb = currentCooldown;
+    // Check if the cooldown period should be reset to the base value.
+    if (user.last_sent && now - new Date(user.last_sent) > RESET_THRESHOLD_MS) {
+      newCooldownForDb = BASE_COOLDOWN_MS;
+    }
+
+    // Generate and save new OTP
+    const otp = generateOTP();
+    const otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    // Send the new verification email
+    await sendVerificationEmail(user.email, otp);
+
+    await user.update({otp_cooldown_duration: newCooldownForDb});
+
+    await user.update({
+      otp,
+      otp_expiry,
+      last_sent: now,
+      otp_cooldown_duration: newCooldownForDb // Save the calculated next cooldown
+    });
+
+    // Respond with success, telling the frontend what the next cooldown is.
+    res.json({
+      ok: true,
+      message: "A new verification code has been sent to your email.",
+      timeLeft: newCooldownForDb / 1000 // Return next cooldown in seconds
+    });
+  } catch (err) {
+    console.error("OTP Send Error:", err);
+    res.status(500).json({error: "Server error."});
+  }
+});
+
+app.post("/api/verify-otp", async (req, res) => {
+  const {email, otp} = req.body;
+
+  try {
+    const user = await User.findOne({where: {email}});
+
+    if (!user) {
+      return res.status(404).json({error: "User not found."});
+    }
+
+    // Check if OTP is correct and not expired
+    if (user.otp !== otp || new Date() > new Date(user.otp_expiry)) {
+      return res.status(400).json({error: "Invalid or expired OTP."});
+    }
+
+    // Mark user as verified and clear OTP fields
+    await user.update({
+      emailVerified: true,
+      otp: null,
+      otp_expiry: null,
+      last_sent: null
+    });
+
+    const token = jwt.sign(
+      {userId: user.id, email: user.email, iat: Math.floor(Date.now() / 1000)},
+      process.env.JWT_SECRET,
+      {expiresIn: process.env.JWT_EXPIRES_IN}
+    );
+
+    const lastLogin = new Date();
+    await User.update({token, lastLogin}, {where: {id: user.id}});
+
+    await LoginActivity.create({
+      userId: user.id,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"]
+    });
+
+    res.json({
+      ok: true,
+      message: "Email verified successfully. You are now logged in.",
+      token
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({error: "Server error."});
   }
 });
 
@@ -2856,6 +3030,60 @@ app.post("/api/admin/category", authenticateToken, async (req, res) => {
     res.status(200).json(formattedCategory);
   } catch (error) {
     console.error("Error creating category:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.post("/api/admin/category/:id/merge", authenticateToken, async (req, res) => {
+  const {mergedCategoryId} = req.body;
+  try {
+    const merged = await Category.findOne({
+      where: {id: mergedCategoryId},
+      include: [
+        {model: LearningPath, through: {attributes: []}, as: "LearningPaths"},
+        {model: Course, through: {attributes: []}, as: "Courses"}
+      ]
+    });
+
+    if (!merged) {
+      return res.status(404).json({error: "Category not found"});
+    }
+
+    const category = await Category.findOne({where: {id: req.params.id}});
+    if (!category) {
+      return res.status(404).json({error: "Category not found"});
+    }
+
+    for (var i = 0; i < merged.LearningPaths.length; i++) {
+      await merged.LearningPaths[i].addCategory(category);
+      await merged.LearningPaths[i].removeCategory(merged);
+    }
+
+    for (var i = 0; i < merged.Courses.length; i++) {
+      await merged.Courses[i].addCategory(category);
+      await merged.Courses[i].removeCategory(merged);
+    }
+    await merged.destroy();
+
+    res.status(200).json({message: "Category merged successfully"});
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.delete("/api/admin/category/:id", authenticateToken, async (req, res) => {
+  try {
+    const category = await Category.findOne({where: {id: req.params.id}});
+    if (!category) {
+      return res.status(404).json({error: "Category not found"});
+    }
+
+    await category.destroy();
+
+    res.status(200).json({message: "Category deleted successfully"});
+  } catch (error) {
+    console.error("Error fetching categories:", error);
     res.status(500).json({error: "Internal Server Error"});
   }
 });
@@ -6160,6 +6388,24 @@ app.post(
   }
 );
 
+app.post(
+  "/api/admin/upload-service-image",
+  authenticateToken,
+  uploadDescImage.single("file"),
+  async (req, res) => {
+    // `file` is the default field name used by our custom imageHandler on the frontend
+    if (!req.file) {
+      return res.status(400).json({error: "No file uploaded."});
+    }
+
+    // Construct the URL that will be inserted into the article content by the editor
+    const imageUrl = `/media/service_description_images/${req.file.filename}`;
+
+    // The editor (Quill/TinyMCE) expects a JSON response with a 'location' property
+    res.status(200).json({location: imageUrl});
+  }
+);
+
 // DELETE an article by slug (Admin only)
 app.delete("/api/admin/articles/:slug", authenticateToken, async (req, res) => {
   try {
@@ -6174,6 +6420,146 @@ app.delete("/api/admin/articles/:slug", authenticateToken, async (req, res) => {
     res.status(204).send(); // No Content
   } catch (error) {
     console.error("Error deleting article:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+//region services
+
+app.post("/api/admin/services", authenticateToken, async (req, res) => {
+  try {
+    const newService = await serviceService.createService(req.body);
+    res.status(201).json({
+      message: "Service created successfully!",
+      service: newService // The service service already returns the formatted object
+    });
+  } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(400).json({error: "A service with this title or slug already exists."});
+    }
+    console.error("Error creating service:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.get("/api/services", async (req, res) => {
+  try {
+    // Extract query parameters
+    const {search, page = 1, limit = 9, sort, order, include_inactive} = req.query;
+
+    const options = {
+      search,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort,
+      order,
+      includeInactive: include_inactive === "true" // Convert string "true"/"false" to boolean
+    };
+
+    const {results, total_services, total_pages, current_page, results_summary} =
+      await serviceService.getAllServices(options);
+
+    res.json({
+      results,
+      total_services,
+      total_pages,
+      current_page,
+      results_summary
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+app.get("/api/admin/services", authenticateToken, async (req, res) => {
+  try {
+    // Extract query parameters
+    const {search, page = 1, limit = 9, sort, order, include_inactive} = req.query;
+
+    const options = {
+      search,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort,
+      order,
+      includeInactive: include_inactive === "true" // Convert string "true"/"false" to boolean
+    };
+
+    const {results, total_services, total_pages, current_page, results_summary} =
+      await serviceService.getAllServices(options);
+
+    res.json({
+      results,
+      total_services,
+      total_pages,
+      current_page,
+      results_summary
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// GET /api/admin/services/:id - Get a single service by ID
+app.get("/api/admin/services/:id", authenticateToken, async (req, res) => {
+  try {
+    const service = await serviceService.getServiceByIdOrSlug(req.params.id, false); // false for ID
+    if (!service) {
+      return res.status(404).json({error: "Service not found."});
+    }
+    res.json(service);
+  } catch (error) {
+    console.error("Error fetching service by ID:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// GET /api/admin/services/slug/:slug - Get a single service by slug (if needed for admin preview)
+app.get("/api/admin/services/slug/:slug", authenticateToken, async (req, res) => {
+  try {
+    const service = await serviceService.getServiceByIdOrSlug(req.params.slug, true); // true for slug
+    if (!service) {
+      return res.status(404).json({error: "Service not found."});
+    }
+    res.json(service);
+  } catch (error) {
+    console.error("Error fetching service by slug:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// PUT /api/admin/services/:id - Update an existing service
+app.put("/api/admin/services/:id", authenticateToken, async (req, res) => {
+  try {
+    const updatedService = await serviceService.updateService(req.params.id, req.body);
+    if (!updatedService) {
+      return res.status(404).json({error: "Service not found."});
+    }
+    res.json({
+      message: "Service updated successfully!",
+      service: updatedService // The service service already returns the formatted object
+    });
+  } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(400).json({error: "A service with this title or slug already exists."});
+    }
+    console.error("Error updating service:", error);
+    res.status(500).json({error: "Internal Server Error"});
+  }
+});
+
+// DELETE /api/admin/services/:id - Delete a service
+app.delete("/api/admin/services/:id", authenticateToken, async (req, res) => {
+  try {
+    const deletedCount = await serviceService.deleteService(req.params.id);
+    if (deletedCount === 0) {
+      return res.status(404).json({error: "Service not found."});
+    }
+    res.status(204).send(); // No content for successful deletion
+  } catch (error) {
+    console.error("Error deleting service:", error);
     res.status(500).json({error: "Internal Server Error"});
   }
 });

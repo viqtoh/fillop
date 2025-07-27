@@ -17,6 +17,8 @@ import Profile from "./pages/Profile";
 import LearnPath from "./pages/LearnPath";
 import Course from "./pages/Course";
 import CourseRead from "./pages/CourseRead";
+import VerifyOtp from "./pages/VerifyOtp";
+
 import AdminHome from "./adminPages/Home";
 
 import AdminDashboard from "./adminPages/Dashboard";
@@ -38,6 +40,8 @@ import LecturerProfile from "./lecturerPages/Profile";
 import LecturerLearnPath from "./lecturerPages/LearnPath";
 import LecturerCourse from "./lecturerPages/Course";
 import LecturerCreateContent from "./lecturerPages/LecturerCreateContent";
+import AdminCourseRead from "./adminPages/AdminCourseRead";
+import ServiceManagement from "./adminPages/ServiceManagement";
 
 function App() {
   return (
@@ -61,6 +65,7 @@ function App() {
         <Route path="/account/settings" element={<Profile />} />
         <Route path="/content-library/path/:pathId/read" element={<CourseRead />} />
         <Route path="/content-library/course/:id/read" element={<CourseRead />} />
+        <Route path="/verify-email" element={<VerifyOtp />} />
 
         {/* Lecturer Routes */}
         <Route path="/lecturer/dashboard" element={<LecturerDashboard />} />
@@ -90,11 +95,14 @@ function App() {
           element={<AdminModuleCrud />}
         />
         <Route path="/admin/content-management/path/:id" element={<AdminLearnPath />} />
+        <Route path="/admin/content-management/path/:pathId/read" element={<AdminCourseRead />} />
+        <Route path="/admin/content-management/course/:id/read" element={<AdminCourseRead />} />
         <Route path="/admin/category-management" element={<CategoryManagement />} />
         <Route path="/admin/user-management" element={<UserManagement />} />
         <Route path="/admin/staff-management" element={<StaffManagement />} />
         <Route path="/admin/news-management" element={<NewsManagement />} />
         <Route path="/admin/account/settings" element={<AdminProfile />} />
+        <Route path="/admin/service-management" element={<ServiceManagement />} />
 
         <Route
           path="/admin/content-management/course/module/:id/assessment"
