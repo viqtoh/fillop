@@ -6442,7 +6442,7 @@ app.post("/api/admin/services", authenticateToken, async (req, res) => {
   }
 });
 
-app.get("/api/services", async (req, res) => {
+app.get("/api/services/all", async (req, res) => {
   try {
     // Extract query parameters
     const page = 1;

@@ -57,7 +57,7 @@ const Services = () => {
       setError(null); // Clear previous errors
       try {
         // Fetch all active services from the public API route
-        const response = await fetch(`${API_URL}/api/services`);
+        const response = await fetch(`${API_URL}/api/services/all`);
         const data = await response.json();
 
         if (response.ok) {
